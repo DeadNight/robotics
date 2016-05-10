@@ -13,10 +13,10 @@ Size::Size(double width, double height)
 	setHeight(height);
 }
 
-ostream& operator<<(ostream& out, const Size& size) {
+std::ostream& operator<<(std::ostream& out, const Size& size) {
 	return out << size.width << " " << size.height;
 }
 
-istream& operator>>(istream& in, Size& size) {
+std::istream& operator>>(std::istream& in, Size& size) {
 	return in >> size.width >> size.height;
 }

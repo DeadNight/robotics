@@ -25,7 +25,7 @@ public:
     Location operator[](std::size_t i);
     Location operator[](std::size_t i) const;
 
-	friend ostream& operator<<(ostream& out, const Path& path);
+	friend std::ostream& operator<<(std::ostream& out, const Path& path);
 };
 
 #endif /* PATH_H_ */

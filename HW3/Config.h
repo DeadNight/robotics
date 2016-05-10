@@ -10,8 +10,9 @@
 #ifndef CONFIG_H_
 #define CONFIG_H_
 
-#include <iostream.h>
+#include <iostream>
 #include <string>
+#include <cstring>
 #include "Position.h"
 #include "Location.h"
 #include "Size.h"
@@ -40,8 +41,8 @@ public:
 	float getGridResolution() const;
 	void setGridResolution(float gridResolution);
 
-	friend ostream& operator<<(ostream& out, const Config& config);
-	friend istream& operator>>(istream& in, Config& config);
+	friend std::ostream& operator<<(std::ostream& out, const Config& config);
+	friend std::istream& operator>>(std::istream& in, Config& config);
 };
 
 #endif /* CONFIG_H_ */

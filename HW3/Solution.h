@@ -25,7 +25,7 @@ public:
 
     void save(char* mapFilePath, float mapResolution) const;
 
-    friend ostream& operator<<(ostream& out, const Solution& solution);
+    friend std::ostream& operator<<(std::ostream& out, const Solution& solution);
 };
 
 #endif /* SOLUTION_H_ */

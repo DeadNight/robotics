@@ -53,16 +53,16 @@ void Config::setGridResolution(float gridResolution) {
 	this->gridResoluton = gridResolution;
 }
 
-ostream& operator<<(ostream& out, const Config& config) {
-	return out << "map: " << config.mapFilePath << endl
-		<< "startLocation: " << config.start << endl
-		<< "goal: " << config.goal << endl
-		<< "robotSize: " << config.robotSize << endl
-		<< "MapResolutionCM: " << config.mapResolution << endl
-		<< "GridResolutionCM: " << config.gridResoluton << endl;
+std::ostream& operator<<(std::ostream& out, const Config& config) {
+	return out << "map: " << config.mapFilePath << std::endl
+		<< "startLocation: " << config.start << std::endl
+		<< "goal: " << config.goal << std::endl
+		<< "robotSize: " << config.robotSize << std::endl
+		<< "MapResolutionCM: " << config.mapResolution << std::endl
+		<< "GridResolutionCM: " << config.gridResoluton << std::endl;
 }
 
-istream& operator>>(istream& in, Config& config) {
+std::istream& operator>>(std::istream& in, Config& config) {
 	char label[20];
 
 	// read label "map: "

@@ -31,11 +31,11 @@ Location Path::operator[](std::size_t i) const {
 	return path[i];
 }
 
-ostream& operator<<(ostream& out, const Path& path) {
+std::ostream& operator<<(std::ostream& out, const Path& path) {
 	for(unsigned i = 0; i < path.path.size(); ++i) {
 		if(i > 0)
 			out << " -> ";
 		out << "(" << path.path[i] << ")";
 	}
-	return out << endl;
+	return out << std::endl;
 }

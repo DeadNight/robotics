@@ -83,7 +83,7 @@ void MapSearchable::smooth(Size robotSize) {
 						int xOffset = (int)j - (double)smoothSize/2;
 						int yOffset = (int)i - (double)smoothSize/2;
 						int smoothPos = (double)pos + yOffset*(int)width + xOffset;
-						double factor = (double)(abs(yOffset) + abs(xOffset)) / smoothSize;
+						double factor = (double)(std::abs(yOffset) + std::abs(xOffset)) / smoothSize;
 						unsigned color = 255 - (factor * 255);
 						if(color > grid[smoothPos])
 							grid[smoothPos] = color;
@@ -145,17 +145,17 @@ void MapSearchable::colorPixel(std::vector<unsigned char>& image, double x, doub
 	}
 }
 
-ostream& operator<<(ostream& out, const MapSearchable& searchable) {
+std::ostream& operator<<(std::ostream& out, const MapSearchable& searchable) {
 	unsigned width = searchable.getWidth();
 	unsigned height = searchable.getHeight();
 	for (unsigned y = 0; y < height; ++y) {
 		for (unsigned x = 0; x < width; ++x) {
 			unsigned pos = y*width + x;
-			cout << " ";
+			std::cout << " ";
 			if(y == searchable.start.getLocation().getY() && x == searchable.start.getX()) {
-				cout << "S";
+				std::cout << "S";
 			} else if(y == searchable.goal.getY() && x == searchable.goal.getX()) {
-				cout << "G";
+				std::cout << "G";
 			} else if(searchable.grid[pos] == 255)
 				out << "@";
 			else if (searchable.grid[pos] > 200)
@@ -171,7 +171,7 @@ ostream& operator<<(ostream& out, const MapSearchable& searchable) {
 			else // grid[pos] == 0
 				out << " ";
 		}
-		out << endl;
+		out << std::endl;
 	}
 	return out;
 }

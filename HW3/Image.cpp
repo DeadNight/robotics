@@ -55,8 +55,8 @@ void Image::load(char* mapFilePath) {
 
 	//if there's an error, display it
 	if (error)
-		cout << "decoder error " << error << ": "
-				<< lodepng_error_text(error) << endl;
+		std::cout << "decoder error " << error << ": "
+				<< lodepng_error_text(error) << std::endl;
 
 	pixels.resize(width * height);
 

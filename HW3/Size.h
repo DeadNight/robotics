@@ -8,7 +8,7 @@
 #ifndef SIZE_H_
 #define SIZE_H_
 
-#include <iostream.h>
+#include <iostream>
 
 class Size {
 	double width;
@@ -23,8 +23,8 @@ public:
     double getHeight() const { return height; }
     void setHeight(double height) { this->height = height; }
 
-    friend ostream& operator<<(ostream& out, const Size& size);
-    friend istream& operator>>(istream& in, Size& size);
+    friend std::ostream& operator<<(std::ostream& out, const Size& size);
+    friend std::istream& operator>>(std::istream& in, Size& size);
 };
 
 #endif /* SIZE_H_ */

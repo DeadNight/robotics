@@ -30,10 +30,10 @@ void Location::setY(double y) {
 	this->y = y;
 }
 
-ostream& operator<<(ostream& out, const Location& location) {
+std::ostream& operator<<(std::ostream& out, const Location& location) {
 	return out << location.x << " " << location.y;
 }
 
-istream& operator>>(istream& in, Location& location) {
+std::istream& operator>>(std::istream& in, Location& location) {
 	return in >> location.x >> location.y;
 }

@@ -10,7 +10,7 @@
 #ifndef POSITION_H_
 #define POSITION_H_
 
-#include <iostream.h>
+#include <iostream>
 #include "Location.h"
 
 class Position {
@@ -30,8 +30,8 @@ public:
     double getYaw() const;
     void setYaw(double yaw);
 
-    friend ostream& operator<<(ostream& out, const Position& position);
-    friend istream& operator>>(istream& in, Position& position);
+    friend std::ostream& operator<<(std::ostream& out, const Position& position);
+    friend std::istream& operator>>(std::istream& in, Position& position);
 };
 
 #endif /* POSITION_H_ */

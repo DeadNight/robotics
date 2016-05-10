@@ -128,16 +128,16 @@ void Map::inflate(Size robotSize) {
 	}
 }
 
-ostream& operator<<(ostream& out, const Map& map) {
+std::ostream& operator<<(std::ostream& out, const Map& map) {
 	for (unsigned y = 0; y < map.height; ++y) {
 		for (unsigned x = 0; x < map.width; ++x) {
-			cout << " ";
+			std::cout << " ";
 			if(map.grid[y*map.width + x])
 				out << "@";
 			else
 				out << " ";
 		}
-		out << endl;
+		out << std::endl;
 	}
 	return out;
 }

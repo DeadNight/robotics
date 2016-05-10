@@ -37,7 +37,7 @@ public:
 
 	void inflate(Size robotSize);
 
-	friend ostream& operator<<(ostream& out, const Map& map);
+	friend std::ostream& operator<<(std::ostream& out, const Map& map);
 
 	unsigned char operator[](std::size_t i);
 	const unsigned char operator[](std::size_t i) const;

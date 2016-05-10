@@ -12,19 +12,18 @@
 #include "Map.h"
 #include "Location.h"
 #include "Solution.h"
+#include "MapSearchable.h"
 
 #include <cmath>
-#include <list>
+#include <vector>
 #include <set>
 
 class Astar{
-	Map map;
+	MapSearchable map;
 	Position start;
 	Location goal;
 public:
-	Astar(Map map, Position start, Location goal);
-	Map getMap();
-	void setMap(Map map);
+	Astar(MapSearchable s);
 	Position getStart();
 	void setStart(Position start);
 	Location getGoal();
@@ -34,7 +33,7 @@ public:
 		* @param goal the goal state
 		* @return the sum of distance in all axis
 		*/
-	double h(Position state, Location goal);
+	double h(Location state, Location goal);
 	/**
 		* @param s Astar type
 		* @return Solution to the problem

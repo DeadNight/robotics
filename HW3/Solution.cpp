@@ -64,17 +64,17 @@ void Solution::save(char* mapFilePath, float mapResolution) const {
 	image.save(mapFilePath);
 }
 
-ostream& operator<<(ostream& out, const Solution& solution) {
+std::ostream& operator<<(std::ostream& out, const Solution& solution) {
 	unsigned width = solution.searchable.getWidth();
 	unsigned height = solution.searchable.getHeight();
 	for (unsigned y = 0; y < height; ++y) {
 		for (unsigned x = 0; x < width; ++x) {
 			unsigned pos = y*width + x;
-			cout << " ";
+			std::cout << " ";
 			if(y == solution.searchable.getStart().getLocation().getY() && x == solution.searchable.getStart().getLocation().getX()) {
-				cout << "S";
+				std::cout << "S";
 			} else if(y == solution.searchable.getGoal().getY() && x == solution.searchable.getGoal().getX()) {
-				cout << "G";
+				std::cout << "G";
 			} else if(solution.searchable[pos] == 255)
 				out << "@";
 			else if (solution.searchable[pos] > 200)
@@ -90,7 +90,7 @@ ostream& operator<<(ostream& out, const Solution& solution) {
 			else // grid[pos] == 0
 				out << " ";
 		}
-		out << endl;
+		out << std::endl;
 	}
 	return out;
 }

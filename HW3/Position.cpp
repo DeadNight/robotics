@@ -42,10 +42,10 @@ void Position::setYaw(double yaw) {
 	this->yaw = yaw;
 }
 
-ostream& operator<<(ostream& out, const Position& position) {
+std::ostream& operator<<(std::ostream& out, const Position& position) {
 	return out << position.location << " " << position.yaw;
 }
 
-istream& operator>>(istream& in, Position& position) {
+std::istream& operator>>(std::istream& in, Position& position) {
 	return in >> position.location >> position.yaw;
 }

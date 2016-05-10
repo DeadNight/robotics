@@ -10,7 +10,7 @@
 #ifndef LOCATION_H_
 #define LOCATION_H_
 
-#include <iostream.h>
+#include <iostream>
 
 class Location {
 	double x;
@@ -25,8 +25,8 @@ public:
     double getY() const;
     void setY(double y);
 
-    friend ostream& operator<<(ostream& out, const Location& location);
-    friend istream& operator>>(istream& in, Location& location);
+    friend std::ostream& operator<<(std::ostream& out, const Location& location);
+    friend std::istream& operator>>(std::istream& in, Location& location);
 };
 
 #endif /* LOCATION_H_ */
