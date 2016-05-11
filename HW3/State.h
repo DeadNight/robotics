@@ -11,19 +11,33 @@
 #include "Location.h"
 #include "MapSearchable.h"
 
-class State: public Location {
-	int cost;
-	int wallDist;
+class State {
+	double cost;
+	unsigned char wallDist;
+	Location location;
+	State* _prevState;
 public:
 	State() { }
-	State(Location l);
-	State(State s);
+	State(Location l, unsigned char wd);
 
-	int getCost();
-	void setCost(unsigned a);
+	~State();
 
-	int getWallDist();
-	void setWallDist(unsigned a);
+	double getCost() const;
+	void setCost(double a);
+
+	Location getLocation()const;
+	void setLocation(Location l);
+
+	State* getPrevState()const;
+	void setPrevState(State* _l);
+
+	unsigned char getWallDist() const;
+	void setWallDist(unsigned char wallDist);
+
+//operator for the sort heap so it will get the minimum value of the vector
+	friend bool operator<(const State& l, const State& r);
+
+	bool operator==(const State& lhs);
 };
 
 #endif /* STATE_H_ */

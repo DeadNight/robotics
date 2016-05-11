@@ -7,34 +7,55 @@
 
 #include "State.h"
 
-State::State(Location l) {
-	setX(l.getX());
-	setY(l.getY());
-	setCost(1);
-	MapSearchable ms;
-	wallDist(ms(l.getX(),l.getY()));
+State::State(Location l, unsigned char wd) {
+	setLocation(l);
+	setCost(wd);
+	setPrevState(NULL);
+	setWallDist(wd);
+
 }
 
-State::State(const State& s) {
-	setX(s.getX());
-	setY(s.getY());
-	setCost(1+s.getCost());
-	wallDist(MapSearchable(s.getX(),s.getY()));
+State::~State(){
+	delete _prevState;
 }
 
-	int State::getCost(){
+	double State::getCost() const{
 		return cost;
 }
 
-	void State::setCost(unsigned a){
+	void State::setCost(double a){
 		this->cost = a;
 }
 
-	int State::getWallDist(){
-		return wallDist;
+Location State::getLocation()const{
+	return location;
 }
 
-	void State::setWallDist(unsigned a){
-		this->wallDist = a;
+void State::setLocation(Location l){
+	this->location = l;
+}
+
+State* State::getPrevState()const{
+	return _prevState;
+}
+
+void State::setPrevState(State* _l){
+	this->_prevState = _l;
+}
+
+unsigned char State::getWallDist() const {
+	return wallDist;
+}
+
+void State::setWallDist(unsigned char wallDist) {
+	this->wallDist = wallDist;
+}
+
+bool operator<(const State& l, const State& r){
+	return l.cost > r.cost;
+}
+
+bool State::operator==(const State& lhs){
+	return lhs.getLocation().getX()==this->location.getX() && lhs.getLocation().getY()==this->location.getY();
 }
 

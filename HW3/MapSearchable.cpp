@@ -183,3 +183,7 @@ unsigned char MapSearchable::operator[](std::size_t i) {
 const unsigned char MapSearchable::operator[](std::size_t i) const {
 	return grid[i];
 }
+
+const unsigned char MapSearchable::operator()(unsigned x, unsigned y) const {
+	return grid[y*getWidth() + x];
+}

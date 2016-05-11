@@ -52,6 +52,7 @@ private:
 	void setGrid(Map map);
 public:
 	friend std::ostream& operator<<(std::ostream& out, const MapSearchable& searchable);
+	const unsigned char operator()(unsigned x, unsigned y) const;
 };
 
 #endif /* MAPSEARCHABLE_H_ */

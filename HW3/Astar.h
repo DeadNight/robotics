@@ -11,34 +11,48 @@
 #include "Position.h"
 #include "Map.h"
 #include "Location.h"
-#include "Solution.h"
+#include "Path.h"
 #include "MapSearchable.h"
+#include "State.h"
 
 #include <cmath>
 #include <vector>
 #include <set>
+#include <queue>
 
 class Astar{
-	MapSearchable map;
-	Position start;
-	Location goal;
+	MapSearchable mapSearchable;
+	State start;
+	State goal;
 public:
 	Astar(MapSearchable s);
-	Position getStart();
-	void setStart(Position start);
-	Location getGoal();
-	void setGoal(Location goal);
+
+	State getStart() const;
+	void setStart(State start);
+
+	State getGoal() const;
+	void setGoal(State goal);
+
+	MapSearchable getMapSearchable() const;
+	void setMapSearchable(MapSearchable m);
+
+	State toState(Location l);
+	//return states of all position moves from a position in the maze
+	std::set<State> getAllPossibleStates(State state);
+
 	 /**
 		* @param state the checked state
 		* @param goal the goal state
 		* @return the sum of distance in all axis
 		*/
-	double h(Location state, Location goal);
+	double manhattenDistance(State start,State goal);
+	//get an array of all the moves for the solution and return as Path
+	Path backTrace(State goalState, State startState);
 	/**
 		* @param s Astar type
 		* @return Solution to the problem
 		*/
-	Solution search(Astar s);
+	Path search();
 };
 
 #endif /* ASTAR_H_ */
