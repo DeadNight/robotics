@@ -17,12 +17,13 @@
 #include "Location.h"
 #include "Solution.h"
 #include "Robot.h"
+#include "Astar.h"
 
 using namespace std;
 
 int main() {
 	Config config;
-	ifstream configIn("/home/user/robotics/PcBotWorld/parameters.txt");
+	ifstream configIn("/home/colman/robotics/PcBotWorld/parameters.txt");
 	configIn >> config;
 	configIn.close();
 
@@ -55,7 +56,7 @@ int main() {
 
 	Path path(locations);
 
-	Solution solution(searchable, path);
+	Solution solution(searchable, Astar(searchable).search());
 	solution.save("solution.png", config.getMapResolution());
 
 	Robot robot("localhost", 6665, config.getRobotSize(), config.getStart(), map);

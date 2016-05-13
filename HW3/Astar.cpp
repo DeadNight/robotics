@@ -115,11 +115,14 @@ Path Astar::search(){
 
 	std::set<State> closedSet;
 
+	int num = 1;
+	std::cout<<"check"<<num<<std::endl;
 	while(!openList.empty())
 	{
+		num++;
 		State current=openList.top();
 		openList.pop();// dequeue
-
+		std::cout<<"check"<<num<<std::endl;
 		closedSet.insert(current);
 
 		if(current.eq(current,this->goal))
@@ -137,6 +140,7 @@ Path Astar::search(){
 				//calculate the g() (path until this point like in BFS) + h() (the path left from calc by heuristic)
 				//and set the cost of the state
 				successors.back().setCost(successors.back().UpdatedCost() + manhattenDistance(current, this->goal));
+				std::cout<<successors.back().getLocation()<<std::endl;
 				openList.push(successors.back());
 			}
 			//check if the state is in openList and the cost of the current state is less then the cost of the state
@@ -146,6 +150,7 @@ Path Astar::search(){
 				//calculate the g() (path until this point like in BFS) + h() (the path left from calc by heuristic)
 				//and set the cost of the state
 				successors.back().setCost(successors.back().UpdatedCost() + manhattenDistance(current, this->goal));
+				std::cout<<successors.back().getLocation()<<std::endl;
 				openList.push(successors.back());
 				successors.pop_back();
 			}
@@ -156,6 +161,7 @@ Path Astar::search(){
 				//calculate the g() (path until this point like in BFS) + h() (the path left from calc by heuristic)
 				//and set the cost of the state
 				successors.back().setCost(successors.back().UpdatedCost() + manhattenDistance(current, this->goal));
+				std::cout<<successors.back().getLocation()<<std::endl;
 				openList.push(successors.back());
 				closedSet.erase(successors.back());
 			}

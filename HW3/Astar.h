@@ -19,6 +19,8 @@
 #include <vector>
 #include <set>
 #include <queue>
+#include <iostream>
+
 
 class Astar{
 	MapSearchable mapSearchable;
