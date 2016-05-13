@@ -36,9 +36,11 @@ public:
 	MapSearchable getMapSearchable() const;
 	void setMapSearchable(MapSearchable m);
 
+	bool openListConatins(std::priority_queue<State> openList, State s);
+
 	State toState(Location l);
 	//return states of all position moves from a position in the maze
-	std::set<State> getAllPossibleStates(State state);
+	std::vector<State> getAllPossibleStates(State state);
 
 	 /**
 		* @param state the checked state

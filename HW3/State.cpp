@@ -12,7 +12,6 @@ State::State(Location l, unsigned char wd) {
 	setCost(wd);
 	setPrevState(NULL);
 	setWallDist(wd);
-
 }
 
 State::~State(){
@@ -55,7 +54,12 @@ bool operator<(const State& l, const State& r){
 	return l.cost > r.cost;
 }
 
-bool State::operator==(const State& lhs){
-	return lhs.getLocation().getX()==this->location.getX() && lhs.getLocation().getY()==this->location.getY();
+bool State::eq(State s1, State s2){
+	return (s1.getLocation().getX()==s2.getLocation().getX()) && (s1.getLocation().getY()==s2.getLocation().getY());
 }
 
+double State::UpdatedCost() //update the cost of the state
+{
+cost = wallDist + _prevState->getCost();
+return cost;
+}

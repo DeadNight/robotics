@@ -35,9 +35,11 @@ public:
 	void setWallDist(unsigned char wallDist);
 
 //operator for the sort heap so it will get the minimum value of the vector
-	friend bool operator<(const State& l, const State& r);
+	friend bool operator < (const State& l, const State& r);
 
-	bool operator==(const State& lhs);
+	bool eq(State s1, State s2);
+
+	double UpdatedCost();
 };
 
 #endif /* STATE_H_ */

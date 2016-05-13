@@ -70,38 +70,46 @@ pathArr[cnt]=startState.getLocation();
 return Path(pathArr);
 }
 
-std::set<State> Astar::getAllPossibleStates(State state) { //return states of all position moves from a position in the maze
+std::vector<State> Astar::getAllPossibleStates(State state) { //return states of all position moves from a position in the maze
 
-std::set<State> possibleStates;
-
+std::vector<State> possibleStates;
+possibleStates.resize(4);
 // get the reference point x y and z
-unsigned char pX = state.getLocation().getX();
-unsigned char pY = state.getLocation().getY();
+unsigned  pX = state.getLocation().getX();
+unsigned  pY = state.getLocation().getY();
 
 if ((pX-1 >= 0) && (mapSearchable(pX-1,pY)!=255)) //Checks whether it is possible to move left
 {
-possibleStates.insert(State(Location(pX-1,pY),mapSearchable(pX-1,pY)));
+	possibleStates.push_back(toState(Location(pX-1,pY)));
 }
-if ((pX+1 < (unsigned char)mapSearchable.getHeight()) && (mapSearchable(pX+1,pY)!=255)) //Checks whether it is possible to move Right
+if ((pX+1 < (unsigned)mapSearchable.getHeight()) && (mapSearchable(pX+1,pY)!=255)) //Checks whether it is possible to move Right
 {
-	possibleStates.insert(State(Location(pX+1,pY),mapSearchable(pX+1,pY)));
+	possibleStates.push_back(toState(Location(pX,pY+1)));
 }
 if ((pY-1 >= 0) && (mapSearchable(pX,pY-1)!=255)) //Checks whether it is possible to move Down
 {
-	possibleStates.insert(State(Location(pX,pY-1),mapSearchable(pX,pY-1)));
+	possibleStates.push_back(toState(Location(pX,pY+1)));
 }
-if ((pY+1 < (unsigned char)mapSearchable.getWidth()) && (mapSearchable(pX,pY+1)!=255)) //Checks whether it is possible to move Up
+if ((pY+1 < (unsigned)mapSearchable.getWidth()) && (mapSearchable(pX,pY+1)!=255)) //Checks whether it is possible to move Up
 {
-	possibleStates.insert(State(Location(pX,pY+1),mapSearchable(pX,pY+1)));
+	possibleStates.push_back(toState(Location(pX,pY+1)));
 }
-
 return possibleStates;
 }
+//checks if certain state is in priority queue, if it is, it returns true
+bool Astar::openListConatins(std::priority_queue<State> openList, State s){
+	std::set<State> temp;
+	while (!openList.empty())
+{
+		temp.insert(openList.top());
+		openList.pop();
+}
+return (!(temp.find(s)==temp.end()));
+}
+
+//replace State in list with
 
 Path Astar::search(){
-
-	double temp;
-
 	std::priority_queue<State> openList;
 	openList.push(this->start);
 
@@ -109,67 +117,50 @@ Path Astar::search(){
 
 	while(!openList.empty())
 	{
-	State current=openList.top();
-	openList.pop();// dequeue
+		State current=openList.top();
+		openList.pop();// dequeue
 
-	closedSet.insert(current);
+		closedSet.insert(current);
 
-	if(current==this->goal)
-	{
-
-	return backTrace(current,start); // private method, back traces through the parents
-	}
-	std::set<State> successors=getAllPossibleStates(current);
-	for (std::set<State>::iterator i = successors.begin(); i != successors.end(); i++) {
-	State temp = *i;
-	//check if the state is not in closedSet and openList
-	if(!closedSet.find(temp) && !(openList.top()==temp))
-	{
-	state.setPrevState(*i); //set the state camefrom to current
-	temp=*i.UpdateCost() + manhattenDistance(current, start); //calculate the g() (path until this point like in BFS) + h() (the path left from calc by heuristic)
-	*i.setCost(temp); //set the cost of the state
-	openList.push(*i);
-	}
-	//check if the state is in openList and the cost of the current state is less then the cost of the state
-	else if(openListContains(state))
-	{
-	State <T> tempState;
-	Iterator<State <T>> it = openList.iterator();
-	while (it.hasNext())
-	{
-	tempState=it.next();
-	if (tempState.equals(state) && current.getCost()<tempState.getCameFrom().getCost())
-	{
-	openList.remove(state);
-	state.setCameFrom(current); //set the state camefrom to current
-	temp=state.UpdateCost() + heuristic.h(current, s.getGoalState()); //calculate the g() (path until this point like in BFS) + h() (the path left from calc by heuristic)
-	state.setCost(temp); //set the cost of the state
-	addToOpenList(state);
-	break;
-	}
-	}
-	}
-	//check if the state is in closedSet and the cost of the current state is less then the cost of the state
-	else if((closedSet.contains(state)))
-	{
-	State <T> tempState;
-	Iterator<State <T>> it = closedSet.iterator();
-	while (it.hasNext())
-	{
-	tempState=it.next();
-	if (tempState.equals(state) && current.getCost()<tempState.getCameFrom().getCost())
-	{
-	state.setCameFrom(current); //set the state camefrom to current
-	temp=state.UpdateCost() + heuristic.h(current, s.getGoalState()); //calculate the g() (path until this point like in BFS) + h() (the path left from calc by heuristic)
-	state.setCost(temp); //set the cost of the state
-	addToOpenList(state);
-	closedSet.remove(state);
-	break;
-	}
-	}
-	}
-	}
-	}
-	return null; //if the loop ended there is no solution return NULL
+		if(current.eq(current,this->goal))
+		{
+		return backTrace(current,start); // private method, back traces through the parents
+		}
+		std::vector<State> successors=getAllPossibleStates(current);
+		while(!successors.empty()) {
+			State closedSetCheck =*closedSet.find(successors.back());
+			State closedSetEnd =*closedSet.end();
+			//check if the state is not in closedSet and openList
+			if(current.eq(closedSetCheck,closedSetEnd) && !(openListConatins(openList,successors.back())))
+			{
+				successors.back().setPrevState(&current); //set the state camefrom to current
+				//calculate the g() (path until this point like in BFS) + h() (the path left from calc by heuristic)
+				//and set the cost of the state
+				successors.back().setCost(successors.back().UpdatedCost() + manhattenDistance(current, this->goal));
+				openList.push(successors.back());
+			}
+			//check if the state is in openList and the cost of the current state is less then the cost of the state
+			else if(openListConatins(openList,successors.back())&& current.getCost()<successors.back().getPrevState()->getCost())
+			{
+				successors.back().setPrevState(&current); //set the state camefrom to current
+				//calculate the g() (path until this point like in BFS) + h() (the path left from calc by heuristic)
+				//and set the cost of the state
+				successors.back().setCost(successors.back().UpdatedCost() + manhattenDistance(current, this->goal));
+				openList.push(successors.back());
+				successors.pop_back();
+			}
+			//check if the state is in closedSet and the cost of the current state is less then the cost of the state
+			else if(!(current.eq(closedSetCheck,closedSetEnd))&& current.getCost()<successors.back().getPrevState()->getCost())
+			{
+				successors.back().setPrevState(&current); //set the state camefrom to current
+				//calculate the g() (path until this point like in BFS) + h() (the path left from calc by heuristic)
+				//and set the cost of the state
+				successors.back().setCost(successors.back().UpdatedCost() + manhattenDistance(current, this->goal));
+				openList.push(successors.back());
+				closedSet.erase(successors.back());
+			}
+		}
+		std::vector<Location> null; //if the loop ended there is no solution return NULL
+		return null;
 	}
 }
