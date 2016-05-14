@@ -49,7 +49,9 @@ int main() {
 	Location mid2((start.getX() + goal.getX())/2, goal.getY());
 
 	Astar astar(searchable);
-	Solution solution(searchable, astar.search());
+	Path path = astar.search();
+
+	Solution solution(searchable, path);
 	solution.save("solution.png", config.getMapResolution());
 
 	Robot robot("localhost", 6665, config.getRobotSize(), config.getStart(), map);
