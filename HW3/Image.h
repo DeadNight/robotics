@@ -31,8 +31,8 @@ public:
 	void setHeight(unsigned height);
 	unsigned getHeight() const;
 
-	void load(char* mapFilePath);
-	void save(char* mapFilePath) const;
+	void load(const char* mapFilePath);
+	void save(const char* mapFilePath) const;
 
 	Color getPixel(std::size_t x, std::size_t y) const;
 	void setPixel(std::size_t x, std::size_t y, Color color);

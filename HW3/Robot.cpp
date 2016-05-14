@@ -12,7 +12,7 @@ double Robot::maxMargin = 2.75;
 double Robot::maxSpeed = 0.5;
 double Robot::maxTurnSpeed = 0.3;
 
-Robot::Robot(char* host, unsigned port, Size size, Position position, Map map) : size(size), map(map) {
+Robot::Robot(const char* host, unsigned port, Size size, Position position, Map map) : size(size), map(map) {
 	pc = new PlayerClient(host,port);
 	pp = new Position2dProxy(pc);
 	lp = new LaserProxy(pc);
@@ -91,8 +91,9 @@ Position Robot::getStagePosition(Position position) const {
 }
 
 Location Robot::getStageLocation() const {
-	getStageLocation(getLocation());
+	return getStageLocation(getLocation());
 }
+
 Location Robot::getStageLocation(Location location) const {
 	Location stageLocation(
 		((location.getX() / 100) * 2.5) - (13.75/2),

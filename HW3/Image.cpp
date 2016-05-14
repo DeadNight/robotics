@@ -47,7 +47,7 @@ void Image::resize() {
 	pixels.resize(width * height);
 }
 
-void Image::load(char* mapFilePath) {
+void Image::load(const char* mapFilePath) {
 	std::vector<unsigned char> rawPixels;
 
 	//decode
@@ -69,7 +69,7 @@ void Image::load(char* mapFilePath) {
 	}
 }
 
-void Image::save(char* mapFilePath) const {
+void Image::save(const char* mapFilePath) const {
 	std::vector<unsigned char> rawPixels;
 	unsigned rawSize = width * height * 4;
 

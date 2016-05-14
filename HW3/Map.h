@@ -30,8 +30,8 @@ public:
 	unsigned getWidth() const;
 	unsigned getHeight() const;
 
-	void load(char* mapFilePath, float mapResolution);
-	void save(char* mapFilePath, float mapResolution) const;
+	void load(const char* mapFilePath, float mapResolution);
+	void save(const char* mapFilePath, float mapResolution) const;
 
 	Image toImage(float mapResolution) const;
 

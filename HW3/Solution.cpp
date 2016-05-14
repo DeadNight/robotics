@@ -28,7 +28,7 @@ void Solution::setPath(Path path) {
     this->path = path;
 }
 
-void Solution::save(char* mapFilePath, float mapResolution) const {
+void Solution::save(const char* mapFilePath, float mapResolution) const {
 	double resolutionRatio = (double)searchable.getMap().getGridResolution() / mapResolution;
 	unsigned pixelSize = resolutionRatio < 1 ? 1 : resolutionRatio;
 

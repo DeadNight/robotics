@@ -40,7 +40,7 @@ public:
 
     void smooth(Size robotSize);
 
-	void save(char* mapFilePath, float mapResolution) const;
+	void save(const char* mapFilePath, float mapResolution) const;
 
 	Image toImage(float mapResolution) const;
 

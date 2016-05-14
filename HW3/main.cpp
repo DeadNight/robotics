@@ -55,7 +55,7 @@ int main() {
 	Robot robot("localhost", 6665, config.getRobotSize(), config.getStart(), map);
 
 	//robot.roam();
-	robot.moveTo(path);
+	//robot.moveTo(path);
 
 	cout << "Success" << endl;
 	return 0;

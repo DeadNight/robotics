@@ -103,7 +103,7 @@ void MapSearchable::setGrid(Map map) {
 		grid[i] = map[i] ? 255 : 0;
 }
 
-void MapSearchable::save(char* mapFilePath, float mapResolution) const {
+void MapSearchable::save(const char* mapFilePath, float mapResolution) const {
 	toImage(mapResolution).save(mapFilePath);
 }
 

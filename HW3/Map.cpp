@@ -33,7 +33,7 @@ unsigned Map::getHeight() const {
 	return height;
 }
 
-void Map::load(char* mapFilePath, float mapResolution) {
+void Map::load(const char* mapFilePath, float mapResolution) {
 	Image image; //the raw image
 	image.load("/home/user/robotics/PcBotWorld/roboticLabMap.png");
 
@@ -68,7 +68,7 @@ void Map::load(char* mapFilePath, float mapResolution) {
 	}
 }
 
-void Map::save(char* mapFilePath, float mapResolution) const {
+void Map::save(const char* mapFilePath, float mapResolution) const {
 	toImage(mapResolution).save(mapFilePath);
 }
 
