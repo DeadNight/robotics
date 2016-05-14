@@ -23,7 +23,7 @@ using namespace std;
 
 int main() {
 	Config config;
-	ifstream configIn("/home/colman/robotics/PcBotWorld/parameters.txt");
+	ifstream configIn("/home/user/robotics/PcBotWorld/parameters.txt");
 	configIn >> config;
 	configIn.close();
 
@@ -48,15 +48,8 @@ int main() {
 	Location mid1(goal.getX(), (start.getY() + goal.getY())/2);
 	Location mid2((start.getX() + goal.getX())/2, goal.getY());
 
-	locations.resize(4);
-	locations[0] = start;
-	locations[1] = mid1;
-	locations[2] = mid2;
-	locations[3] = goal;
-
-	Path path(locations);
-
-	Solution solution(searchable, Astar(searchable).search());
+	Astar astar(searchable);
+	Solution solution(searchable, astar.search());
 	solution.save("solution.png", config.getMapResolution());
 
 	Robot robot("localhost", 6665, config.getRobotSize(), config.getStart(), map);

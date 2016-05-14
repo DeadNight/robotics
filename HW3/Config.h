@@ -11,7 +11,6 @@
 #define CONFIG_H_
 
 #include <iostream>
-#include <string>
 #include <cstring>
 #include "Position.h"
 #include "Location.h"

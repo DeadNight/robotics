@@ -41,10 +41,10 @@ void Solution::save(char* mapFilePath, float mapResolution) const {
 
 	for(unsigned i = 1; i < path.size(); ++i) {
 		Location from, to;
-		from.setX(path[i - 1].getX()*resolutionRatio);
-		from.setY(path[i - 1].getY()*resolutionRatio);
-		to.setX(path[i].getX()*resolutionRatio);
-		to.setY(path[i].getY()*resolutionRatio);
+		from.setX(path[i - 1].getX());
+		from.setY(path[i - 1].getY());
+		to.setX(path[i].getX());
+		to.setY(path[i].getY());
 
 		image.setLine(from, to, pixelSize, red);
 
@@ -70,11 +70,11 @@ std::ostream& operator<<(std::ostream& out, const Solution& solution) {
 	for (unsigned y = 0; y < height; ++y) {
 		for (unsigned x = 0; x < width; ++x) {
 			unsigned pos = y*width + x;
-			std::cout << " ";
+			out << " ";
 			if(y == solution.searchable.getStart().getLocation().getY() && x == solution.searchable.getStart().getLocation().getX()) {
-				std::cout << "S";
+				out << "S";
 			} else if(y == solution.searchable.getGoal().getY() && x == solution.searchable.getGoal().getX()) {
-				std::cout << "G";
+				out << "G";
 			} else if(solution.searchable[pos] == 255)
 				out << "@";
 			else if (solution.searchable[pos] > 200)

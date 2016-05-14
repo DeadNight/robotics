@@ -145,17 +145,29 @@ void MapSearchable::colorPixel(std::vector<unsigned char>& image, double x, doub
 	}
 }
 
+unsigned char MapSearchable::operator[](std::size_t i) {
+	return grid[i];
+}
+
+const unsigned char MapSearchable::operator[](std::size_t i) const {
+	return grid[i];
+}
+
+const unsigned char MapSearchable::operator()(unsigned x, unsigned y) const {
+	return grid[y*getWidth() + x];
+}
+
 std::ostream& operator<<(std::ostream& out, const MapSearchable& searchable) {
 	unsigned width = searchable.getWidth();
 	unsigned height = searchable.getHeight();
 	for (unsigned y = 0; y < height; ++y) {
 		for (unsigned x = 0; x < width; ++x) {
 			unsigned pos = y*width + x;
-			std::cout << " ";
+			out << " ";
 			if(y == searchable.start.getLocation().getY() && x == searchable.start.getX()) {
-				std::cout << "S";
+				out << "S";
 			} else if(y == searchable.goal.getY() && x == searchable.goal.getX()) {
-				std::cout << "G";
+				out << "G";
 			} else if(searchable.grid[pos] == 255)
 				out << "@";
 			else if (searchable.grid[pos] > 200)
@@ -174,16 +186,4 @@ std::ostream& operator<<(std::ostream& out, const MapSearchable& searchable) {
 		out << std::endl;
 	}
 	return out;
-}
-
-unsigned char MapSearchable::operator[](std::size_t i) {
-	return grid[i];
-}
-
-const unsigned char MapSearchable::operator[](std::size_t i) const {
-	return grid[i];
-}
-
-const unsigned char MapSearchable::operator()(unsigned x, unsigned y) const {
-	return grid[y*getWidth() + x];
 }

@@ -138,6 +138,7 @@ void Robot::moveTo(Location location) {
 	double biggestSize = getWidth() > getHeight() ? getWidthMeters() : getHeightMeters();
 
 	pp->SetMotorEnable(true);
+	pp->SetSpeed(0, 0);
 	double d;
 	while((d = distanceTo(target)) > biggestSize/2) {
 		pc->Read();
@@ -157,27 +158,48 @@ void Robot::moveTo(Location location) {
 		gp->Color(255, 0, 0, 255);
 		gp->DrawPolyline(points, 2);
 
-		double m = (target.getY() - getY()) / (target.getX() - getX());
-		double targetYaw = atan(m);
+
+		double targetYaw = angleTo(target);
 
 		double yawDiff = targetYaw - getYaw();
 
-		double turnSpeed = dtor(180) - abs(yawDiff);
+		while(yawDiff < dtor(180))
+			yawDiff += dtor(360);
+		while(yawDiff > dtor(180))
+			yawDiff -= dtor(360);
 
-		cout << turnSpeed << endl;
+		double speed = 0;
+		if(abs(yawDiff) < 0.1)
+			speed = maxSpeed;
 
-		if(abs(turnSpeed) > maxTurnSpeed) {
+		double turnSpeed = yawDiff;
+		if(abs(turnSpeed) > maxTurnSpeed)
 			turnSpeed = (turnSpeed/abs(turnSpeed))*maxTurnSpeed;
-			cout << "capped " << turnSpeed << endl;
-		}
 
-		pp->SetSpeed(0, turnSpeed);
+		pp->SetSpeed(speed, turnSpeed);
 	}
+	pp->SetSpeed(0, 0);
 	pp->SetMotorEnable(false);
 }
 
-double Robot::distanceTo(Location stageLocation) const {
-	return sqrt(pow(pp->GetXPos() - stageLocation.getX(), 2) + (pp->GetYPos() - stageLocation.getY(), 2));
+double Robot::distanceTo(Location target) const {
+	return sqrt(pow(target.getX() - getX(), 2) + pow(target.getY() - getY(), 2));
+}
+
+double Robot::angleTo(Location target) const {
+	double angle;
+	if(target.getX() == getX()) {
+		if(target.getY() > getY())
+			angle = dtor(90);
+		else
+			angle = dtor(-90);
+	} else {
+		double m = (target.getY() - getY()) / (target.getX() - getX());
+		angle = atan(m);
+		if(target.getX() < getX())
+			angle += dtor(180);
+	}
+	return angle;
 }
 
 void Robot::drawPoint(Location stageLocation, player_color color) const {
@@ -199,125 +221,4 @@ void Robot::drawPoint(Location stageLocation, player_color color) const {
 	points[3].py = point.py + 0.05;
 
 	gp->DrawPolygon(points, 4, true, color);
-}
-
-void Robot::roam() {
-	pp->SetMotorEnable(true);
-
-	int turnDirection = 0;
-
-	while(true) {
-		pc->Read();
-		gp->Clear();
-
-		// print all obstacles in range
-
-		double x = pp->GetXPos();
-		double y = pp->GetYPos();
-		double yaw = pp->GetYaw();
-
-		player_point_2d points[lp->GetCount()];
-		int empty[lp->GetCount()];
-		int count = 0;
-		uint countEmpty = 0;
-
-		empty[countEmpty++] = 0;
-
-		for(uint i = 0; i < lp->GetCount(); ++i) {
-			if((*lp)[i] < lp->GetMaxRange()) {
-				double d = (*lp)[i];
-				double angle = yaw + lp->GetBearing(i);
-
-
-				double xObs = x + d*cos(angle);
-				double yObs = y + d*sin(angle);
-
-				player_point_2d point[1] = {{xObs, yObs}};
-				points[count++] = point[0];
-			} else {
-				if(count == 0 || (*lp)[i - 1] == lp->GetMaxRange()) {
-					continue;
-				} else {
-					empty[countEmpty++] = count;
-				}
-			}
-		}
-
-		if((*lp)[count] < lp->GetMaxRange())
-			empty[countEmpty++] = count - 1;
-
-		// check if there are obstacles ahead that the robot can't go through
-
-		double maxAngle = atan((getWidthMeters())/(getHeight()/100));
-		double angleStep = 2*lp->GetMaxAngle()/lp->GetCount();
-		int minIndex = (lp->GetMaxAngle() - maxAngle) / angleStep;
-		bool obstacleInFront = false;
-		bool frontObstacleClose = false;
-		for(int i = minIndex; i < lp->GetCount() - minIndex; ++i) {
-			double d = (*lp)[i];
-			double angle = lp->GetBearing(i);
-
-			double minDistance = MIN(lp->GetMaxRange(), abs(((getWidthMeters())/2) / sin(angle)));
-			if(d < minDistance) {
-				player_point_2d points[2] = {
-					{pp->GetXPos(), pp->GetYPos()},
-					{pp->GetXPos() + d*cos(pp->GetYaw() + angle), pp->GetYPos() + d*sin(pp->GetYaw() + angle)}
-				};
-
-				double xDistance = abs(d*cos(angle));
-
-				if(xDistance < minMargin*getHeightMeters()) {
-					obstacleInFront = true;
-					frontObstacleClose = true;
-					gp->Color(255, 0, 0, 255);
-				} else if(xDistance < maxMargin*getHeightMeters()) {
-					obstacleInFront = true;
-					gp->Color(255, 165, 0, 255);
-				} else {
-					gp->Color(0, 255, 0, 255);
-				}
-
-				gp->DrawPolyline(points, 2);
-
-			}
-		}
-
-		if(obstacleInFront) {
-			if(!turnDirection) {
-				double weight = 0, maxWeight = 0;
-				int mid = lp->GetCount()/2;
-
-				for(int i = 1; i < mid; ++i) {
-					if((*lp)[mid - i] >= lp->GetMaxRange()) {
-						--maxWeight;
-					}
-					if((*lp)[mid + i] >= lp->GetMaxRange()) {
-						++maxWeight;
-					}
-					weight -= (*lp)[mid - i];
-					weight += (*lp)[mid + i];
-				}
-
-
-				if(maxWeight > 0) {
-					turnDirection = 1;
-				} else if(maxWeight < 0) {
-					turnDirection = -1;
-				} else if(weight > 0) {
-					turnDirection = 1;
-				} else {
-					turnDirection = -1;
-				}
-			}
-
-			if(frontObstacleClose) {
-				pp->SetSpeed(0, turnDirection*maxTurnSpeed);
-			} else {
-				pp->SetSpeed(maxSpeed/2, turnDirection*maxTurnSpeed);
-			}
-		} else {
-			turnDirection = 0;
-			pp->SetSpeed(maxSpeed, 0);
-		}
-	}
 }

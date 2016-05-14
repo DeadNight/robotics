@@ -72,10 +72,9 @@ public:
     void moveTo(Location location);
 
     double distanceTo(Location stageLocation) const;
+    double angleTo(Location target) const;
 
     void drawPoint(Location stageLocation, player_color color) const;
-
-    void roam();
 };
 
 #endif /* ROBOT_H_ */
