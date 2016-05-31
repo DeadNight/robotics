@@ -8,7 +8,6 @@
 #ifndef STATE_H_
 #define STATE_H_
 
-#include <tr1/functional_hash.h>
 #include <string>
 
 #include "Location.h"

@@ -46,7 +46,7 @@ void Solution::save(const char* mapFilePath, float mapResolution) const {
 		to.setX(path[i].getX() * resolutionRatio);
 		to.setY(path[i].getY() * resolutionRatio);
 
-		image.setLine(from, to, pixelSize, red);
+		image.setLine(from, to, pixelSize/2, red);
 
 		if(i > 1)
 			image.setAround(from, pixelSize, cyan);

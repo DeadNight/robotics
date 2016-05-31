@@ -22,6 +22,8 @@ public:
 
 	unsigned size() const;
 
+	void reduce();
+
     Location operator[](std::size_t i);
     Location operator[](std::size_t i) const;
 

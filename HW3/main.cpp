@@ -43,21 +43,18 @@ int main() {
 
 	vector<Location> locations;
 
-	Location start = config.getStart().getLocation();
-	Location goal = config.getGoal();
-	Location mid1(goal.getX(), (start.getY() + goal.getY())/2);
-	Location mid2((start.getX() + goal.getX())/2, goal.getY());
-
 	Astar astar(searchable);
 	Path path = astar.search();
+
+	path.reduce();
 
 	Solution solution(searchable, path);
 	solution.save("solution.png", config.getMapResolution());
 
-	Robot robot("localhost", 6665, config.getRobotSize(), config.getStart(), map);
+	Position start(path[0], config.getStart().getYaw());
 
-	//robot.roam();
-	//robot.moveTo(path);
+	Robot robot("localhost", 6665, config.getRobotSize(), start, map);
+	robot.moveTo(path);
 
 	cout << "Success" << endl;
 	return 0;

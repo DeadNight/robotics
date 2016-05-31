@@ -30,6 +30,22 @@ void Location::setY(double y) {
 	this->y = y;
 }
 
+double Location::angleTo(Location target) const {
+	double angle;
+	if(target.x == x) {
+		if(target.x > y)
+			angle = PlayerCc::dtor(90);
+		else
+			angle = PlayerCc::dtor(-90);
+	} else {
+		double m = (target.y - y) / (target.x - x);
+		angle = atan(m);
+		if(target.x < x)
+			angle += PlayerCc::dtor(180);
+	}
+	return angle;
+}
+
 std::ostream& operator<<(std::ostream& out, const Location& location) {
 	return out << location.x << " " << location.y;
 }

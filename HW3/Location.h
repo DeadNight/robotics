@@ -11,6 +11,7 @@
 #define LOCATION_H_
 
 #include <iostream>
+#include <libplayerc++/playerc++.h>
 
 class Location {
 	double x;
@@ -24,6 +25,8 @@ public:
 
     double getY() const;
     void setY(double y);
+
+    double angleTo(Location target) const;
 
     friend std::ostream& operator<<(std::ostream& out, const Location& location);
     friend std::istream& operator>>(std::istream& in, Location& location);

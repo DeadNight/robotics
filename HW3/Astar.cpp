@@ -50,36 +50,31 @@ double Astar::airDistance(const Location& l1, const Location& l2) const {
 //return states of all position moves from a position in the maze
 std::vector<State*> Astar::getAllPossibleStates(const State& state) {
 	std::vector<State*> possibleStates;
+	std::vector<Location> locations;
 
 	unsigned pX = state.getX();
 	unsigned pY = state.getY();
 
-	Location l;
+	locations.push_back(Location(pX - 1, pY + 1));
+	locations.push_back(Location(pX - 1, pY));
+	locations.push_back(Location(pX - 1, pY - 1));
+	locations.push_back(Location(pX, pY - 1));
+	locations.push_back(Location(pX + 1, pY - 1));
+	locations.push_back(Location(pX + 1, pY));
+	locations.push_back(Location(pX + 1, pY + 1));
+	locations.push_back(Location(pX, pY + 1));
 
-	//Checks whether it is possible to move left
-	l = Location(pX - 1, pY);
-	if (pX - 1 >= 0 && mapSearchable(l) != 255) {
-		states.push_back(new State(l, state.getBaseCost() + airDistance(l, state.getLocation()), mapSearchable(l)/255, airDistance(l, this->goal.getLocation()), state));
-		possibleStates.push_back(states.back());
+	for(std::vector<Location>::iterator it = locations.begin(); it != locations.end(); ++it) {
+		Location& l = *it;
+		if(l.getX() >= 0 && l.getY() >= 0 && l.getX() < mapSearchable.getWidth() && l.getY() < mapSearchable.getHeight() && mapSearchable(l) != 1) {
+			double stepCost = airDistance(l, state.getLocation());
+			double locationCost = 4*mapSearchable(l)*mapSearchable(l);
+			double heuristicCost = airDistance(l, this->goal.getLocation());
+			states.push_back(new State(l, state.getBaseCost() + stepCost, locationCost, heuristicCost, state));
+			possibleStates.push_back(states.back());
+		}
 	}
-	//Checks whether it is possible to move Right
-	l = Location(pX + 1, pY);
-	if (pX + 1 < mapSearchable.getWidth() && mapSearchable(l) != 255) {
-		states.push_back(new State(l, state.getBaseCost() + airDistance(l, state.getLocation()), mapSearchable(l)/255, airDistance(l, this->goal.getLocation()), state));
-		possibleStates.push_back(states.back());
-	}
-	//Checks whether it is possible to move Down
-	l = Location(pX, pY - 1);
-	if (pY - 1 >= 0 && mapSearchable(l) != 255) {
-		states.push_back(new State(l, state.getBaseCost() + airDistance(l, state.getLocation()), mapSearchable(l)/255, airDistance(l, this->goal.getLocation()), state));
-		possibleStates.push_back(states.back());
-	}
-	//Checks whether it is possible to move Up
-	l = Location(pX, pY + 1);
-	if (pY + 1 < mapSearchable.getHeight() && mapSearchable(l) != 255) {
-		states.push_back(new State(l, state.getBaseCost() + airDistance(l, state.getLocation()), mapSearchable(l)/255, airDistance(l, this->goal.getLocation()), state));
-		possibleStates.push_back(states.back());
-	}
+
 	return possibleStates;
 }
 
@@ -171,7 +166,13 @@ Path Astar::backTrace(const State& endState) {
 		state = state->getPrevState();
 	}
 	locations.push_back(this->start.getLocation());
-	return Path(locations);
+
+	std::vector<Location> reverseLocations;
+	for(std::vector<Location>::reverse_iterator it = locations.rbegin(); it != locations.rend(); ++it) {
+		reverseLocations.push_back(*it);
+	}
+
+	return Path(reverseLocations);
 }
 
 void Astar::cleanupStates() {

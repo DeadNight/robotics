@@ -9,8 +9,8 @@
 
 double Robot::minMargin = 1.5;
 double Robot::maxMargin = 2.75;
-double Robot::maxSpeed = 0.5;
-double Robot::maxTurnSpeed = 0.3;
+double Robot::maxSpeed = 0.7;
+double Robot::maxTurnSpeed = 0.5;
 
 Robot::Robot(const char* host, unsigned port, Size size, Position position, Map map) : size(size), map(map) {
 	pc = new PlayerClient(host,port);
@@ -96,8 +96,8 @@ Location Robot::getStageLocation() const {
 
 Location Robot::getStageLocation(Location location) const {
 	Location stageLocation(
-		((location.getX() / 100) * 2.5) - (13.75/2),
-		-((location.getY() / 100) * 2.5) + (9.5/2)
+		(location.getX() / 10) - (13.75/2),
+		-(location.getY() / 10) + (9.5/2)
 	);
 	return stageLocation;
 }
@@ -169,8 +169,15 @@ void Robot::moveTo(Location location) {
 		while(yawDiff > dtor(180))
 			yawDiff -= dtor(360);
 
-		double speed = 0;
+		double speed;
 		if(abs(yawDiff) < 0.1)
+			speed = maxSpeed;
+		else if(abs(yawDiff) > dtor(45))
+			speed = 0;
+		else
+			speed = maxSpeed * (1 - (abs(yawDiff) / dtor(45)));
+
+		if(speed > maxSpeed)
 			speed = maxSpeed;
 
 		double turnSpeed = yawDiff;
@@ -188,19 +195,7 @@ double Robot::distanceTo(Location target) const {
 }
 
 double Robot::angleTo(Location target) const {
-	double angle;
-	if(target.getX() == getX()) {
-		if(target.getY() > getY())
-			angle = dtor(90);
-		else
-			angle = dtor(-90);
-	} else {
-		double m = (target.getY() - getY()) / (target.getX() - getX());
-		angle = atan(m);
-		if(target.getX() < getX())
-			angle += dtor(180);
-	}
-	return angle;
+	return getLocation().angleTo(target);
 }
 
 void Robot::drawPoint(Location stageLocation, player_color color) const {
