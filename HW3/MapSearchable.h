@@ -48,7 +48,8 @@ public:
 
 	unsigned char operator[](std::size_t i);
 	const unsigned char operator[](std::size_t i) const;
-	const unsigned char operator()(unsigned x, unsigned y) const;
+	double operator()(Location l) const;
+	double operator()(unsigned x, unsigned y) const;
 private:
 	void setGrid(Map map);
 public:

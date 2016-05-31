@@ -41,10 +41,10 @@ void Solution::save(const char* mapFilePath, float mapResolution) const {
 
 	for(unsigned i = 1; i < path.size(); ++i) {
 		Location from, to;
-		from.setX(path[i - 1].getX());
-		from.setY(path[i - 1].getY());
-		to.setX(path[i].getX());
-		to.setY(path[i].getY());
+		from.setX(path[i - 1].getX() * resolutionRatio);
+		from.setY(path[i - 1].getY() * resolutionRatio);
+		to.setX(path[i].getX() * resolutionRatio);
+		to.setY(path[i].getY() * resolutionRatio);
 
 		image.setLine(from, to, pixelSize, red);
 

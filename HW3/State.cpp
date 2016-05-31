@@ -7,59 +7,50 @@
 
 #include "State.h"
 
-State::State(Location l, unsigned char wd) {
-	setLocation(l);
-	setCost(wd);
-	setPrevState(NULL);
-	setWallDist(wd);
+State::State(): baseCost(0), locationCost(0), heuristicCost(0), prevState(NULL) {
 }
 
-State::~State(){
-	delete _prevState;
+State::State(const Location& l): location(l), baseCost(0), locationCost(0), heuristicCost(0), prevState(NULL) {
 }
 
-	double State::getCost() const{
-		return cost;
+State::State(const Location& l, double bc, double lc, double hc): location(l), baseCost(bc), locationCost(lc), heuristicCost(hc), prevState(NULL) {
 }
 
-	void State::setCost(double a){
-		this->cost = a;
+State::State(const Location& l, double bc, double lc, double hc, const State& prevState): location(l), baseCost(bc), locationCost(lc), heuristicCost(hc), prevState(&prevState) {
 }
 
-Location State::getLocation()const{
+double State::getBaseCost() const {
+	return baseCost;
+}
+
+void State::setBaseCost(double c) {
+	this->baseCost = c;
+}
+
+double State::getCost() const {
+	return baseCost + locationCost + heuristicCost;
+}
+
+Location State::getLocation() const {
 	return location;
 }
 
-void State::setLocation(Location l){
-	this->location = l;
+void State::setLocation(Location l) {
+	location = l;
 }
 
-State* State::getPrevState()const{
-	return _prevState;
+const State* State::getPrevState() const {
+	return prevState;
 }
 
-void State::setPrevState(State* _l){
-	this->_prevState = _l;
+void State::setPrevState(const State& s) {
+	prevState = &s;
 }
 
-unsigned char State::getWallDist() const {
-	return wallDist;
+double State::getLocationCost() const {
+	return locationCost;
 }
 
-void State::setWallDist(unsigned char wallDist) {
-	this->wallDist = wallDist;
-}
-
-bool operator<(const State& l, const State& r){
-	return l.cost > r.cost;
-}
-
-bool State::eq(State s1, State s2){
-	return (s1.getLocation().getX()==s2.getLocation().getX()) && (s1.getLocation().getY()==s2.getLocation().getY());
-}
-
-double State::UpdatedCost() //update the cost of the state
-{
-cost = wallDist + _prevState->getCost();
-return cost;
+void State::setLocationCost(double lc) {
+	locationCost = lc;
 }

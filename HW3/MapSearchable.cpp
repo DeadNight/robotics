@@ -153,8 +153,16 @@ const unsigned char MapSearchable::operator[](std::size_t i) const {
 	return grid[i];
 }
 
-const unsigned char MapSearchable::operator()(unsigned x, unsigned y) const {
-	return grid[y*getWidth() + x];
+double MapSearchable::operator()(Location l) const {
+	return (*this)(l.getX(), l.getY());
+}
+
+double MapSearchable::operator()(unsigned x, unsigned y) const {
+	if(x < 0 || y < 0 || x >= getWidth() || y >= getHeight()) {
+		std::cout << "out of bounds " << x << ", " << y << std::endl;
+		throw "out of bounds";
+	}
+	return (double)grid[y*getWidth() + x]/255;
 }
 
 std::ostream& operator<<(std::ostream& out, const MapSearchable& searchable) {

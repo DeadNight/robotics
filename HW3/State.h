@@ -8,38 +8,55 @@
 #ifndef STATE_H_
 #define STATE_H_
 
+#include <tr1/functional_hash.h>
+#include <string>
+
 #include "Location.h"
 #include "MapSearchable.h"
 
 class State {
-	double cost;
-	unsigned char wallDist;
+	double baseCost;
+	double locationCost;
+	double heuristicCost;
 	Location location;
-	State* _prevState;
+	const State* prevState;
 public:
-	State() { }
-	State(Location l, unsigned char wd);
+	State();
+	State(const Location& l);
+	State(const Location& l, double bc, double lc, double hc);
+	State(const Location& l, double bc, double lc, double hc, const State& prevState);
 
-	~State();
+	double getBaseCost() const;
+	void setBaseCost(double c);
 
 	double getCost() const;
-	void setCost(double a);
 
 	Location getLocation()const;
 	void setLocation(Location l);
 
-	State* getPrevState()const;
-	void setPrevState(State* _l);
+	inline const double getX() const { return location.getX(); }
+	inline const double getY() const { return location.getY(); }
 
-	unsigned char getWallDist() const;
-	void setWallDist(unsigned char wallDist);
+	const State* getPrevState()const;
+	void setPrevState(const State& s);
 
-//operator for the sort heap so it will get the minimum value of the vector
-	friend bool operator < (const State& l, const State& r);
+	double getLocationCost() const;
+	void setLocationCost(double lc);
 
-	bool eq(State s1, State s2);
+	//operator for the sort heap so it will get the minimum value of the vector
+	inline bool operator<(const State& other) const { return getCost() < other.getCost(); }
+	inline bool operator>(const State& other) const { return other < *this; }
+	inline bool operator<=(const State& other) const { return !(*this > other); }
+	inline bool operator>=(const State& other) const { return !(*this < other); }
 
-	double UpdatedCost();
+	inline bool operator==(const State& other) const {
+		return (getX() == other.getX()) && (getY() == other.getY());
+	}
+	inline bool operator!=(const State& other) const { return !(*this == other); }
+
+	struct Greater {
+		inline bool operator()(const State* lhs, const State* rhs) const { return *lhs > *rhs; }
+	};
 };
 
 #endif /* STATE_H_ */
