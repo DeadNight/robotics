@@ -10,7 +10,11 @@
 
 #include "Position.h"
 #include "Robot.h"
+#include "MapSearchable.h"
+#include <vector>
 #include <math.h>
+
+#define PI 3.14159265
 
 class Partical {
 	Position position;
@@ -18,7 +22,6 @@ class Partical {
 public:
 
 	Partical(Position p);
-	virtual ~Partical();
 
 	double getBelief() const;
 
@@ -28,11 +31,13 @@ public:
 
 	void setPosition(const Position& position);
 
-	void update(LaserProxy *lp,double dx, double dy, double dyaw, Map map);
+	void update(LaserProxy *lp,double dx, double dy, double dyaw, MapSearchable map);
 
 	void printPosition();
 
-	double probaByLazer(LaserProxy *lp, Map map);
+	Path linearPath(Location a, Location b);
+
+	double probaByLazer(LaserProxy *lp, MapSearchable map);
 
 	double probaByMove(double dx, double dy, double dyaw);
 };
