@@ -8,6 +8,7 @@
 #ifndef PARTICAL_H_
 #define PARTICAL_H_
 
+
 #include "Position.h"
 #include "Robot.h"
 #include "MapSearchable.h"
@@ -35,9 +36,11 @@ public:
 
 	void update(LaserProxy *lp,double dx, double dy, double dyaw, MapSearchable map);
 
-	void printPartical();
+	void printPartical(Robot r);
 
 	Path linearPath(Location a, Location b);
+
+	double helpFunc (double x);
 
 	double probaByLazer(LaserProxy *lp, MapSearchable map);
 

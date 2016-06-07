@@ -33,12 +33,17 @@ void Partical::update(LaserProxy *lp,double dx, double dy, double dyaw, MapSearc
 
 	this->position.setLocation(Location(this->position.getX()+dx,this->position.getY()+dy));
 	this->position.setYaw(this->position.getYaw()+dyaw);
-	this->belief=0.1*this->belief*probaByMove(dx,dy,dyaw)*probaByLazer(lp,map);
+	this->belief=10*this->belief*probaByMove(dx,dy,dyaw)*probaByLazer(lp,map);
 
 }
 
-void Partical::printPartical(){
-
+void Partical::printPartical(Robot r){
+	player_color c;
+	c.red = 100;
+	c.green = 200;
+	c.blue = 200;
+	c.alpha = 255;
+	r.drawPoint(r.getStageLocation(this->position.getLocation()),c);
 }
 
 Path Partical::linearPath(Location from, Location to){
@@ -80,6 +85,10 @@ Path Partical::linearPath(Location from, Location to){
 		return path;
 }
 
+double Partical::helpFunc (double x){
+	return fabs(1 - 1/(1+x));
+}
+
 double Partical::probaByLazer(LaserProxy *lp, MapSearchable map){
 	double hits = 0;
 	for(uint i = 0; i < lp->GetCount(); ++i) {
@@ -92,10 +101,9 @@ double Partical::probaByLazer(LaserProxy *lp, MapSearchable map){
 		Path temp=linearPath(Location(this->position.getX(),this->position.getY()),Location(virXObs,virYObs));
 		if (d < lp->GetMaxRange()){
 			for (unsigned j = 1; j < temp.getPath().size(); ++j){
-				if (map(temp.getPath()[j].getX(),temp.getPath()[j].getY())==255){
+				if (map(temp.getPath()[j].getX(),temp.getPath()[j].getY())==1){
 					double disntance = sqrt(pow(temp.getPath()[j].getX()-xObs,2)+pow(temp.getPath()[j].getY()-yObs,2));
-					cout<< "add "<< 1-(atan(disntance)/(PI/2))<<endl;
-					hits+=1-(atan(disntance)/(PI/2));
+					hits+=(helpFunc(disntance));
 					break;
 				}
 			}
@@ -103,21 +111,22 @@ double Partical::probaByLazer(LaserProxy *lp, MapSearchable map){
 		else{
 			bool check=false;
 			for (unsigned k = 1; k < temp.getPath().size()/2; ++k){
-				//cout<< "255= "<< map(temp.getPath()[k].getX(),temp.getPath()[k].getY())<<endl;
-				if (map(temp.getPath()[k].getX(),temp.getPath()[k].getY())==255){
+				//cout<< "1= "<< map(temp.getPath()[k].getX(),temp.getPath()[k].getY())<<endl;
+				if (map(temp.getPath()[k].getX(),temp.getPath()[k].getY())==1){
 					double disntance = sqrt(pow(temp.getPath()[k].getX()-xObs,2)+pow(temp.getPath()[k].getY()-yObs,2));
-					cout << "dis " << disntance << endl;
-					hits+=1-(atan(disntance)/(PI/2));
+					hits+=(helpFunc(disntance));
 					check=true;
 					break;
 				}
 			}
 			if (!check){
-				hits+=1;
+				hits++;
 			}
 		}
 	}
 	cout<<"hits: = "<<hits<<endl;
+	cout<<"counts: = "<<lp->GetCount()<<endl;
+	cout<<"end: = "<<hits/lp->GetCount()<<endl;
 	return hits/lp->GetCount();
 }
 
@@ -151,7 +160,7 @@ vector <Partical> Partical::particleMulti(Partical p, int num, MapSearchable map
 
 		Partical temp(Position(p.getPosition().getX()+vars[0],p.getPosition().getY()+vars[1],p.getPosition().getYaw()+vars[2]),p.getBelief());
 
-		while (map(p.getPosition().getX()+vars[0],p.getPosition().getY()+vars[1])!=255 && particles.end()==find(particles,temp)){
+		while (map(p.getPosition().getX()+vars[0],p.getPosition().getY()+vars[1])!=1 && particles.end()==find(particles,temp)){
 			vars = random_numbers();
 			temp = Partical(Position(p.getPosition().getX()+vars[0],p.getPosition().getY()+vars[1],p.getPosition().getYaw()+vars[2]),p.getBelief());
 		}
