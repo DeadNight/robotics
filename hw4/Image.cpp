@@ -51,7 +51,7 @@ void Image::load(const char* mapFilePath) {
 	std::vector<unsigned char> rawPixels;
 
 	//decode
-	unsigned error = lodepng::decode(rawPixels, width, height, "/home/user/robotics/PcBotWorld/roboticLabMap.png");
+	unsigned error = lodepng::decode(rawPixels, width, height, mapFilePath);
 
 	//if there's an error, display it
 	if (error)

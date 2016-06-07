@@ -27,17 +27,22 @@ int main() {
 	configIn >> config;
 	configIn.close();
 
-	cout << "config: " << endl << config << endl;
+	cout << "config: " << endl
+		 << config << endl;
 
 	double mapResolution = config.getMapResolution();
 	double gridResolution = config.getGridResolution();
 
 	Map map(gridResolution);
 	map.load(config.getMapFilePath(), mapResolution);
-	map.inflate(config.getRobotSize());
-	map.save("map.png", config.getMapResolution());
 
-	MapSearchable searchable(map, config.getStart(), config.getGoal(), mapResolution);
+	Map inflatedMap(map);
+	inflatedMap.inflate(config.getRobotSize());
+
+	map.save("map.png", config.getMapResolution());
+	inflatedMap.save("inflatedMap.png", config.getMapResolution());
+
+	MapSearchable searchable(inflatedMap, config.getStart(), config.getGoal(), mapResolution);
 	searchable.smooth(config.getRobotSize());
 	searchable.save("searchable.png", mapResolution);
 
@@ -46,14 +51,17 @@ int main() {
 	Astar astar(searchable);
 	Path path = astar.search();
 
-	path.reduce();
-
 	Solution solution(searchable, path);
 	solution.save("solution.png", config.getMapResolution());
 
+	path.reduce();
+
+	Solution reducedSolution(searchable, path);
+	reducedSolution.save("reducedSolution.png", config.getMapResolution());
+
 	Position start(path[0], config.getStart().getYaw());
 
-	Robot robot("localhost", 6665, config.getRobotSize(), start, map);
+	Robot robot("localhost", 6665, config.getRobotSize(), start);
 	robot.moveTo(path);
 
 	cout << "Success" << endl;

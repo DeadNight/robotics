@@ -32,9 +32,8 @@ class Robot {
 
 	Size size;
 	Position position;
-	Map map;
 public:
-	Robot(const char* host, unsigned port, Size size, Position position, Map map);
+	Robot(const char* host, unsigned port, Size size, Position position);
 	virtual ~Robot();
 
 	Size getSize() const;

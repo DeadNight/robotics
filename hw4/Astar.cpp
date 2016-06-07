@@ -68,7 +68,7 @@ std::vector<State*> Astar::getAllPossibleStates(const State& state) {
 		Location& l = *it;
 		if(l.getX() >= 0 && l.getY() >= 0 && l.getX() < mapSearchable.getWidth() && l.getY() < mapSearchable.getHeight() && mapSearchable(l) != 1) {
 			double stepCost = airDistance(l, state.getLocation());
-			double locationCost = 4*mapSearchable(l)*mapSearchable(l);
+			double locationCost = 60 * stepCost * pow(mapSearchable(l), 4);
 			double heuristicCost = airDistance(l, this->goal.getLocation());
 			states.push_back(new State(l, state.getBaseCost() + stepCost, locationCost, heuristicCost, state));
 			possibleStates.push_back(states.back());

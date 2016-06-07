@@ -35,7 +35,7 @@ unsigned Map::getHeight() const {
 
 void Map::load(const char* mapFilePath, float mapResolution) {
 	Image image; //the raw image
-	image.load("/home/user/robotics/PcBotWorld/roboticLabMap.png");
+	image.load(mapFilePath);
 
 	double resolutionRatio = (double)gridResolution / mapResolution;
 	unsigned pixelSize = resolutionRatio < 1 ? 1 : resolutionRatio;

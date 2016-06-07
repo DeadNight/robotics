@@ -12,7 +12,7 @@ double Robot::maxMargin = 2.75;
 double Robot::maxSpeed = 0.7;
 double Robot::maxTurnSpeed = 0.5;
 
-Robot::Robot(const char* host, unsigned port, Size size, Position position, Map map) : size(size), map(map) {
+Robot::Robot(const char* host, unsigned port, Size size, Position position) : size(size) {
 	pc = new PlayerClient(host,port);
 	pp = new Position2dProxy(pc);
 	lp = new LaserProxy(pc);
@@ -112,14 +112,6 @@ double Robot::getY() const {
 
 double Robot::getYaw() const {
 	return position.getYaw();
-}
-
-Map Robot::getMap() const {
-	return map;
-}
-
-void Robot::setMap(Map map) {
-	this->map = map;
 }
 
 void Robot::moveTo(Path path) {
