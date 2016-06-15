@@ -18,17 +18,19 @@
 #include "Solution.h"
 #include "Robot.h"
 #include "Astar.h"
+#include "Partical.h"
+#include "LocalizationManager.h"
+#include <libplayerc++/playerc++.h>
 
 using namespace std;
 
 int main() {
 	Config config;
-	ifstream configIn("/home/user/robotics/PcBotWorld/parameters.txt");
+	ifstream configIn("/home/colman/robotics/PcBotWorld/parameters.txt");
 	configIn >> config;
 	configIn.close();
 
-	cout << "config: " << endl
-		 << config << endl;
+	cout << "config: " << endl << config << endl;
 
 	double mapResolution = config.getMapResolution();
 	double gridResolution = config.getGridResolution();
@@ -60,9 +62,41 @@ int main() {
 	reducedSolution.save("reducedSolution.png", config.getMapResolution());
 
 	Position start(path[0], config.getStart().getYaw());
+	Position end(path[path.size()-1],0);
 
-	Robot robot("localhost", 6665, config.getRobotSize(), start);
-	robot.moveTo(path);
+	/*std::vector<bool> grid = map.getGrid();
+	for (unsigned y = 0; y < map.getHeight(); ++y) {
+			for (unsigned x = 0; x < map.getWidth(); ++x) {
+				if (grid[y*map.getWidth() + x])
+				cout<< x<<","<<y<<"= "<<grid[y*map.getWidth() + x]<<endl;
+			}
+	}
+*/
+	Partical particl(start, 1);
+	cout << particl.getPosition() << endl << particl.getBelief() << endl;
+
+	vector<Partical *> _particles;
+	_particles.push_back(&particl);
+
+	LocalizationManager local(_particles,map);
+
+	PlayerClient *pc=  new PlayerClient("localhost",6665);
+
+	LaserProxy *lp= new LaserProxy(pc);
+	Position2dProxy *pp = new Position2dProxy(pc);
+
+	pp->SetMotorEnable(true);
+	pc->Read();
+	pp->SetSpeed(0.1, 0);
+	pc->Read();
+
+	double num =1;
+	local.update(lp,num,num,num);
+	local.printParticels("particles.png",mapResolution);
+
+	Robot robot("localhost", 6665, config.getRobotSize(), start, map);
+	//robot.moveTo(path);
+
 
 	cout << "Success" << endl;
 	return 0;

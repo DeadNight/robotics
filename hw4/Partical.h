@@ -8,7 +8,8 @@
 #ifndef PARTICAL_H_
 #define PARTICAL_H_
 
-
+#include "Image.h"
+#include "Color.h"
 #include "Position.h"
 #include "Robot.h"
 #include "MapSearchable.h"
@@ -18,6 +19,8 @@
 #include <time.h>
 
 #define PI 3.14159265
+#define NORMAL 2.5
+#define RANGE 3
 
 class Partical {
 	Position position;
@@ -34,23 +37,24 @@ public:
 
 	void setPosition(const Position& position);
 
-	void update(LaserProxy *lp,double dx, double dy, double dyaw, MapSearchable map);
+	void update(LaserProxy *lp,double dx, double dy, double dyaw, Map *map);
 
-	void printPartical(Robot r);
+	void printPartical(Map *map,const char* mapFilePath, float mapResolution);//in order to print one particle
+	void printPartical(Map *_map,Image *image, float mapResolution);//in order to save particle to image but not only one
 
 	Path linearPath(Location a, Location b);
 
 	double helpFunc (double x);
 
-	double probaByLazer(LaserProxy *lp, MapSearchable map);
+	double probaByLazer(LaserProxy *lp, Map *map);
 
 	double probaByMove(double dx, double dy, double dyaw);
 
 	vector<double> random_numbers();
 
-	vector<Partical>::iterator find(vector<Partical>& list, const Partical& p);
+	vector<Partical*>::iterator find(vector<Partical*>& list, const Partical& p);
 
-	vector <Partical> particleMulti(Partical p, int num, MapSearchable map);
+	vector <Partical*> particleMulti(int num, Map *map);
 
 	inline bool operator==(const Partical& other) const {
 			return (position.getX() == other.getPosition().getX()) && (position.getY() == other.getPosition().getY()) &&(position.getYaw() == other.getPosition().getYaw());

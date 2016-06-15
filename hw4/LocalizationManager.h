@@ -15,14 +15,30 @@ using namespace std;
 class LocalizationManager {
 private:
     vector<Partical *> _particles;
+    Map map;
 public:
-	LocalizationManager();
+    LocalizationManager();
+    LocalizationManager(vector<Partical *> _particles,Map map);
+    virtual ~LocalizationManager();
 
-	 void update(double deltaX, double deltaY, double deltaYaw);
-	 void resampleParticles();
+    const Map& getMap() const ;
+	void setMap(const Map& map);
+
+	const vector<Partical*>& getParticles() const;
+	void setParticles(const vector<Partical*>& particles);
+
+	 void update(LaserProxy *lp,double dx, double dy, double dyaw);
+
+	 void resampleParticles(unsigned i);
 	 Partical *getBestParticle();
-	 
-	 virtual ~LocalizationManager();
+
+	 //getting the value of the average belief of particles
+	 double getMidBelife();
+
+	void addVector (vector<Partical*>& addVector);
+
+	 void printParticels(const char* mapFilePath, float mapResolution);
+
 };
 
 #endif /* LOCALIZATIONMANAGER_H_ */

@@ -149,3 +149,21 @@ unsigned char Map::operator[](std::size_t i) {
 const unsigned char Map::operator[](std::size_t i) const {
 	return grid[i];
 }
+
+double Map::operator()(Location l) const {
+	return (*this)(l.getX(), l.getY());
+}
+
+double Map::operator()(unsigned x, unsigned y) const {
+	if(x < 0 || y < 0 || x >= getWidth() || y >= getHeight()) {
+		return 1;
+	}
+
+	if(grid[y*getWidth() + x]){
+		return 1;
+	}
+	else{
+		return 0;
+	}
+	//return (double)grid[y*getWidth() + x];
+}
