@@ -18,6 +18,9 @@
 #include "Solution.h"
 #include "Robot.h"
 #include "Astar.h"
+#include "Partical.h"
+#include "LocalizationManager.h"
+#include <libplayerc++/playerc++.h>
 
 using namespace std;
 
@@ -30,7 +33,7 @@ int main() {
 	cout << "done" << endl;
 
 	cout << "config: " << endl
-		 << config << endl;
+	     << config << endl;
 
 	float mapResolution = config.getMapResolution();
 
@@ -85,17 +88,41 @@ int main() {
 
 	cout << "creating reduced solution... ";
 	Solution reducedSolution(searchable, path);
+
 	cout << "done" << endl
 		 << "saving reduced solution... ";
 	reducedSolution.save("reducedSolution.png");
 	cout << "done" << endl;
-	cout << solution << endl
 
 	cout << "connecting to robot... ";
 	Robot robot("localhost", 6665, config.getRobotSize(), start);
 	cout << "moving robot to goal... ";
 	robot.moveTo(path);
 	cout << "done" << endl;
+
+/*
+	Partical particl(start, 1);
+	cout << particl.getPosition() << endl << particl.getBelief() << endl;
+
+	vector<Partical *> _particles;
+	_particles.push_back(&particl);
+
+	LocalizationManager local(_particles,map);
+
+	PlayerClient *pc=  new PlayerClient("localhost",6665);
+
+	LaserProxy *lp= new LaserProxy(pc);
+	Position2dProxy *pp = new Position2dProxy(pc);
+
+	pp->SetMotorEnable(true);
+	pc->Read();
+	pp->SetSpeed(0.1, 0);
+	pc->Read();
+
+	double num =1;
+	local.update(lp,num,num,num);
+	local.printParticels("particles.png",mapResolution);
+*/
 
 	cout << "Success" << endl;
 	return 0;

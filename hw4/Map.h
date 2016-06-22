@@ -51,6 +51,9 @@ public:
 
 	unsigned char operator[](std::size_t i);
 	const unsigned char operator[](std::size_t i) const;
+
+	double operator()(Location l) const;
+	double operator()(unsigned x, unsigned y) const;
 };
 
 #endif /* MAP_H_ */
