@@ -14,9 +14,12 @@
 #include <cmath>
 #include "Size.h"
 #include "Image.h"
+#include "Location.h"
+#include "Position.h"
 
 class Map {
 	float gridResolution;
+	float mapResolution;
 	std::vector<bool> grid;
 	unsigned width, height;
 public:
@@ -26,14 +29,21 @@ public:
 	float getGridResolution() const;
 	void setGridResolution(float gridResolution);
 
+	float getMapResolution() const;
+
 	std::vector<bool> getGrid() const;
 	unsigned getWidth() const;
 	unsigned getHeight() const;
 
-	void load(const char* mapFilePath, float mapResolution);
-	void save(const char* mapFilePath, float mapResolution) const;
+	Position getGridPosition(Position position) const;
+	Location getGridLocation(Location location) const;
 
-	Image toImage(float mapResolution) const;
+	Location getWorldLocation(Location location) const;
+
+	void load(const char* mapFilePath, float mapResolution);
+	void save(const char* mapFilePath) const;
+
+	Image toImage() const;
 
 	void inflate(Size robotSize);
 

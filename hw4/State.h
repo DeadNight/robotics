@@ -11,13 +11,12 @@
 #include <string>
 
 #include "Location.h"
-#include "MapSearchable.h"
 
 class State {
+	Location location;
 	double baseCost;
 	double locationCost;
 	double heuristicCost;
-	Location location;
 	const State* prevState;
 public:
 	State();

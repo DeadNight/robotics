@@ -26,7 +26,38 @@ public:
     double getY() const;
     void setY(double y);
 
+    double distanceTo(Location target) const;
     double angleTo(Location target) const;
+
+    inline Location& operator+=(const double scalar) {
+    	x += scalar;
+    	y += scalar;
+    	return *this;
+	}
+    friend Location operator+(Location location, const double scalar) {
+    	location += scalar;
+		return location;
+	}
+
+	inline Location& operator*=(const double scalar) {
+		x *= scalar;
+		y *= scalar;
+		return *this;
+	}
+	friend Location operator*(Location location, const double scalar) {
+		location *= scalar;
+		return location;
+	}
+
+	inline Location& operator/=(const double scalar) {
+			x /= scalar;
+			y /= scalar;
+			return *this;
+		}
+		friend Location operator/(Location location, const double scalar) {
+			location /= scalar;
+			return location;
+		}
 
     friend std::ostream& operator<<(std::ostream& out, const Location& location);
     friend std::istream& operator>>(std::istream& in, Location& location);

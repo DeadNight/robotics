@@ -30,6 +30,33 @@ public:
     double getYaw() const;
     void setYaw(double yaw);
 
+    inline Position& operator+=(const double scalar) {
+		location += scalar;
+		return *this;
+	}
+	friend Position operator+(Position position, const double scalar) {
+		position += scalar;
+		return position;
+	}
+
+	inline Position& operator*=(const double scalar) {
+		location *= scalar;
+		return *this;
+	}
+	friend Position operator*(Position position, const double scalar) {
+		position *= scalar;
+		return position;
+	}
+
+	inline Position& operator/=(const double scalar) {
+		location /= scalar;
+		return *this;
+	}
+	friend Position operator/(Position position, const double scalar) {
+		position /= scalar;
+		return position;
+	}
+
     friend std::ostream& operator<<(std::ostream& out, const Position& position);
     friend std::istream& operator>>(std::istream& in, Position& position);
 };

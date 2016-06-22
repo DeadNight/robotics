@@ -28,38 +28,33 @@ void Solution::setPath(Path path) {
     this->path = path;
 }
 
-void Solution::save(const char* mapFilePath, float mapResolution) const {
-	double resolutionRatio = (double)searchable.getMap().getGridResolution() / mapResolution;
+void Solution::save(const char* mapFilePath) const {
+	double resolutionRatio = (double)searchable.getGridResolution() / searchable.getMapResolution();
 	unsigned pixelSize = resolutionRatio < 1 ? 1 : resolutionRatio;
 
-	Color red(255, 0, 0);
-	Color green(0, 255, 0);
-	Color blue(0, 0, 255);
-	Color cyan(0, 255, 255);
-
-	Image image = searchable.toImage(mapResolution);
+	Image image = searchable.toImage();
 
 	for(unsigned i = 1; i < path.size(); ++i) {
 		Location from, to;
-		from.setX(path[i - 1].getX() * resolutionRatio);
-		from.setY(path[i - 1].getY() * resolutionRatio);
-		to.setX(path[i].getX() * resolutionRatio);
-		to.setY(path[i].getY() * resolutionRatio);
+		from.setX(path[i - 1].getX() / searchable.getMapResolution());
+		from.setY(path[i - 1].getY() / searchable.getMapResolution());
+		to.setX(path[i].getX() / searchable.getMapResolution());
+		to.setY(path[i].getY() / searchable.getMapResolution());
 
-		image.setLine(from, to, pixelSize/2, red);
+		image.setLine(from, to, pixelSize/2, Color::Red);
 
 		if(i > 1)
-			image.setAround(from, pixelSize, cyan);
+			image.setAround(from, pixelSize, Color::Cyan);
 	}
 
 	Location start, goal;
-	start.setX(searchable.getStart().getX()*resolutionRatio);
-	start.setY(searchable.getStart().getY()*resolutionRatio);
-	image.setAround(start, pixelSize, green);
+	start.setX(searchable.getStartState().getX() / searchable.getMapResolution());
+	start.setY(searchable.getStartState().getY() / searchable.getMapResolution());
+	image.setAround(start, pixelSize, Color::Green);
 
-	goal.setX(searchable.getGoal().getX()*resolutionRatio);
-	goal.setY(searchable.getGoal().getY()*resolutionRatio);
-	image.setAround(goal, pixelSize, blue);
+	goal.setX(searchable.getGoalState().getX() / searchable.getMapResolution());
+	goal.setY(searchable.getGoalState().getY() / searchable.getMapResolution());
+	image.setAround(goal, pixelSize, Color::Blue);
 
 	image.save(mapFilePath);
 }
@@ -71,9 +66,9 @@ std::ostream& operator<<(std::ostream& out, const Solution& solution) {
 		for (unsigned x = 0; x < width; ++x) {
 			unsigned pos = y*width + x;
 			out << " ";
-			if(y == solution.searchable.getStart().getLocation().getY() && x == solution.searchable.getStart().getLocation().getX()) {
+			if(y == solution.searchable.getStartState().getY() && x == solution.searchable.getStartState().getX()) {
 				out << "S";
-			} else if(y == solution.searchable.getGoal().getY() && x == solution.searchable.getGoal().getX()) {
+			} else if(y == solution.searchable.getGoalState().getY() && x == solution.searchable.getGoalState().getX()) {
 				out << "G";
 			} else if(solution.searchable[pos] == 255)
 				out << "@";

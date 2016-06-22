@@ -96,8 +96,8 @@ Location Robot::getStageLocation() const {
 
 Location Robot::getStageLocation(Location location) const {
 	Location stageLocation(
-		(location.getX() / 10) - (13.75/2),
-		-(location.getY() / 10) + (9.5/2)
+		(location.getX() / 100) - (13.75/2),
+		-(location.getY() / 100) + (9.5/2)
 	);
 	return stageLocation;
 }
@@ -183,7 +183,7 @@ void Robot::moveTo(Location location) {
 }
 
 double Robot::distanceTo(Location target) const {
-	return sqrt(pow(target.getX() - getX(), 2) + pow(target.getY() - getY(), 2));
+	return getLocation().distanceTo(target);
 }
 
 double Robot::angleTo(Location target) const {

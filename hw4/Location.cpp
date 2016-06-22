@@ -30,6 +30,10 @@ void Location::setY(double y) {
 	this->y = y;
 }
 
+double Location::distanceTo(Location target) const {
+	return sqrt(pow(target.x - x, 2) + pow(target.y - y, 2));
+}
+
 double Location::angleTo(Location target) const {
 	double angle;
 	if(target.x == x) {

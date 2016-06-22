@@ -21,38 +21,19 @@
 #include "MapSearchable.h"
 #include "State.h"
 
-class Astar{
+class Astar {
 	MapSearchable mapSearchable;
-	State start;
-	State goal;
 	std::vector<State*> states;
 public:
 	Astar(MapSearchable s);
 
-	const State& getStart() const;
-	void setStart(const State& start);
-
-	const State& getGoal() const;
-	void setGoal(const State& goal);
-
 	MapSearchable getMapSearchable() const;
 	void setMapSearchable(MapSearchable m);
 
-	//return states of all position moves from a position in the maze
-	std::vector<State*> getAllPossibleStates(const State& state);
-
-	 /**
-		* @param state the checked state
-		* @param goal the goal state
-		* @return the sum of distance in all axis
-		*/
-	double manhattenDistance(const Location& l1, const Location& l2) const;
-	double airDistance(const Location& l1, const Location& l2) const;
-
-	/**
-		* @param s Astar type
-		* @return Solution to the problem
-		*/
+	/*
+	 * @param s Astar type
+	 * @return Solution to the problem
+	 */
 	Path search();
 
 private:

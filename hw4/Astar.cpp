@@ -3,28 +3,6 @@
 
 Astar::Astar(MapSearchable s) {
 	setMapSearchable(s);
-
-	Location startLocation = s.getStart().getLocation();
-	Location endLocation = s.getGoal();
-
-	setStart(State(startLocation, 0, mapSearchable(startLocation.getX(), startLocation.getY()), airDistance(startLocation, endLocation)));
-	setGoal(State(endLocation));
-}
-
-const State& Astar::getStart() const{
-	return start;
-}
-
-void Astar::setStart(const State& start) {
-	this->start = start;
-}
-
-const State& Astar::getGoal() const{
-	return goal;
-}
-
-void Astar::setGoal(const State& goal) {
-	this->goal = goal;
 }
 
 MapSearchable Astar::getMapSearchable() const {
@@ -32,50 +10,7 @@ MapSearchable Astar::getMapSearchable() const {
 }
 
 void Astar::setMapSearchable(MapSearchable m) {
-	this->mapSearchable = m;
-}
-
-double Astar::manhattenDistance(const Location& l1, const Location& l2) const {
-	double xAxis = std::abs(l1.getX() - l2.getX());
-	double yAxis = std::abs(l1.getY() - l2.getY());
-	return xAxis + yAxis;
-}
-
-double Astar::airDistance(const Location& l1, const Location& l2) const {
-	double xAxis = std::pow(l1.getX() - l2.getX(), 2);
-	double yAxis = std::pow(l1.getY() - l2.getY(), 2);
-	return sqrt(xAxis + yAxis);
-}
-
-//return states of all position moves from a position in the maze
-std::vector<State*> Astar::getAllPossibleStates(const State& state) {
-	std::vector<State*> possibleStates;
-	std::vector<Location> locations;
-
-	unsigned pX = state.getX();
-	unsigned pY = state.getY();
-
-	locations.push_back(Location(pX - 1, pY + 1));
-	locations.push_back(Location(pX - 1, pY));
-	locations.push_back(Location(pX - 1, pY - 1));
-	locations.push_back(Location(pX, pY - 1));
-	locations.push_back(Location(pX + 1, pY - 1));
-	locations.push_back(Location(pX + 1, pY));
-	locations.push_back(Location(pX + 1, pY + 1));
-	locations.push_back(Location(pX, pY + 1));
-
-	for(std::vector<Location>::iterator it = locations.begin(); it != locations.end(); ++it) {
-		Location& l = *it;
-		if(l.getX() >= 0 && l.getY() >= 0 && l.getX() < mapSearchable.getWidth() && l.getY() < mapSearchable.getHeight() && mapSearchable(l) != 1) {
-			double stepCost = airDistance(l, state.getLocation());
-			double locationCost = 60 * stepCost * pow(mapSearchable(l), 4);
-			double heuristicCost = airDistance(l, this->goal.getLocation());
-			states.push_back(new State(l, state.getBaseCost() + stepCost, locationCost, heuristicCost, state));
-			possibleStates.push_back(states.back());
-		}
-	}
-
-	return possibleStates;
+	mapSearchable = m;
 }
 
 //replace State in list with
@@ -83,7 +18,7 @@ Path Astar::search() {
 	std::vector<State*> openList;
 	std::vector<State*> closedList;
 
-	openList.push_back(&this->start);
+	openList.push_back(&mapSearchable.getStartState());
 	std::push_heap(openList.begin(), openList.end(), State::Greater());
 
 	while(!openList.empty()) {
@@ -95,13 +30,14 @@ Path Astar::search() {
 
 		sanity(current);
 
-		if(current == this->goal) {
+		if(current == mapSearchable.getGoalState()) {
 			Path solution = backTrace(current);
 			cleanupStates();
 			return solution;
 		}
 
-		std::vector<State*> successors = getAllPossibleStates(current);
+		std::vector<State*> successors = mapSearchable.getAllPossibleStates(current);
+		states.insert(states.end(), successors.begin(), successors.end());
 
 		while(!successors.empty()) {
 			State& nextState = *successors.back();
@@ -165,7 +101,7 @@ Path Astar::backTrace(const State& endState) {
 		locations.push_back(state->getLocation());
 		state = state->getPrevState();
 	}
-	locations.push_back(this->start.getLocation());
+	locations.push_back(mapSearchable.getStartState().getLocation());
 
 	std::vector<Location> reverseLocations;
 	for(std::vector<Location>::reverse_iterator it = locations.rbegin(); it != locations.rend(); ++it) {

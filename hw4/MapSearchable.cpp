@@ -9,11 +9,14 @@
 
 #include "MapSearchable.h"
 
-MapSearchable::MapSearchable(Map map, Position start, Location goal, double mapResolution) {
+MapSearchable::MapSearchable(Map map, Position start, Location goal) {
 	setMap(map);
-	setGrid(map);
-	setStart(start, mapResolution);
-	setGoal(goal, mapResolution);
+
+	this->start = map.getGridPosition(start);
+	this->goal = map.getGridLocation(goal);
+
+	this->startState = State(map.getWorldLocation(this->start.getLocation()), 0, this->operator()(this->start.getLocation()), airDistance(this->start.getLocation(), this->goal));
+	this->goalState = State(map.getWorldLocation(this->goal));
 }
 
 Map MapSearchable::getMap() const {
@@ -22,29 +25,75 @@ Map MapSearchable::getMap() const {
 
 void MapSearchable::setMap(Map map) {
 	this->map = map;
+
+	unsigned width = getWidth();
+	unsigned height = getHeight();
+
+	grid.resize(width * height);
+	for(unsigned i = 0; i < width * height; ++i)
+		grid[i] = map[i] ? 255 : 0;
 }
 
-Position MapSearchable::getStart() const {
-	return start;
+float MapSearchable::getGridResolution() const {
+	return map.getGridResolution();
 }
 
-void MapSearchable::setStart(Position start, double mapResolution) {
-	int x = start.getLocation().getX() * mapResolution / map.getGridResolution();
-	int y = start.getLocation().getY() * mapResolution / map.getGridResolution();
-	Location location(x, y);
-	Position newStart(location, start.getYaw());
-	this->start = newStart;
+float MapSearchable::getMapResolution() const {
+	return map.getMapResolution();
 }
 
-Location MapSearchable::getGoal() const {
-	return goal;
+State& MapSearchable::getStartState() {
+	return startState;
 }
 
-void MapSearchable::setGoal(Location goal, double mapResolution) {
-	int x = goal.getX() * mapResolution / map.getGridResolution();
-	int y = goal.getY() * mapResolution / map.getGridResolution();
-	Location newGoal(x, y);
-	this->goal = newGoal;
+const State& MapSearchable::getStartState() const {
+	return startState;
+}
+
+State& MapSearchable::getGoalState() {
+	return goalState;
+}
+
+const State& MapSearchable::getGoalState() const {
+	return goalState;
+}
+
+double MapSearchable::airDistance(const Location& l1, const Location& l2) const {
+	double xAxis = std::pow(l1.getX() - l2.getX(), 2);
+	double yAxis = std::pow(l1.getY() - l2.getY(), 2);
+	return sqrt(xAxis + yAxis);
+}
+
+//return states of all position moves from a position
+std::vector<State*> MapSearchable::getAllPossibleStates(const State& state) {
+	std::vector<State*> possibleStates;
+	std::vector<Location> locations;
+
+	Location gridLocation = map.getGridLocation(state.getLocation());
+
+	unsigned pX = gridLocation.getX();
+	unsigned pY = gridLocation.getY();
+
+	locations.push_back(Location(pX - 1, pY + 1));
+	locations.push_back(Location(pX - 1, pY));
+	locations.push_back(Location(pX - 1, pY - 1));
+	locations.push_back(Location(pX, pY - 1));
+	locations.push_back(Location(pX + 1, pY - 1));
+	locations.push_back(Location(pX + 1, pY));
+	locations.push_back(Location(pX + 1, pY + 1));
+	locations.push_back(Location(pX, pY + 1));
+
+	for(std::vector<Location>::iterator it = locations.begin(); it != locations.end(); ++it) {
+		Location& l = *it;
+		if(l.getX() >= 0 && l.getY() >= 0 && l.getX() < getWidth() && l.getY() < getHeight() && this->operator()(l) != 1) {
+			double stepCost = airDistance(l, gridLocation);
+			double locationCost = 60 * stepCost * pow(this->operator()(l), 4);
+			double heuristicCost = airDistance(l, goal);
+			possibleStates.push_back(new State(map.getWorldLocation(l), state.getBaseCost() + stepCost, locationCost, heuristicCost, state));
+		}
+	}
+
+	return possibleStates;
 }
 
 unsigned MapSearchable::getWidth() const {
@@ -68,7 +117,7 @@ void MapSearchable::smooth(Size robotSize) {
 	}
 
 	unsigned robotBiggestSize = robotSize.getWidth() > robotSize.getHeight() ? robotSize.getWidth() : robotSize.getHeight();
-	unsigned smoothSize = ceil((robotBiggestSize / 2) / map.getGridResolution());
+	unsigned smoothSize = ceil((robotBiggestSize / 2) / getGridResolution());
 	smoothSize *= 3;
 
 	for (unsigned y = 0; y < height; y++) {
@@ -94,37 +143,26 @@ void MapSearchable::smooth(Size robotSize) {
 	}
 }
 
-void MapSearchable::setGrid(Map map) {
-	unsigned width = getWidth();
-	unsigned height = getHeight();
-
-	grid.resize(width * height);
-	for(unsigned i = 0; i < width * height; ++i)
-		grid[i] = map[i] ? 255 : 0;
+void MapSearchable::save(const char* mapFilePath) const {
+	toImage().save(mapFilePath);
 }
 
-void MapSearchable::save(const char* mapFilePath, float mapResolution) const {
-	toImage(mapResolution).save(mapFilePath);
-}
-
-Image MapSearchable::toImage(float mapResolution) const {
-	double resolutionRatio = (double)map.getGridResolution() / mapResolution;
+Image MapSearchable::toImage() const {
+	double resolutionRatio = (double)getGridResolution() / getMapResolution();
 	unsigned pixelSize = resolutionRatio < 1 ? 1 : resolutionRatio;
 
-	Color green(0, 255, 0);
-	Color blue(0, 0, 255);
 	Image image(getWidth() * pixelSize, getHeight() * pixelSize);
 
 	for (unsigned y = 0; y < getHeight(); ++y) {
 		for (unsigned x = 0; x < getWidth(); ++x) {
 			if(x == start.getX() && y == start.getY()) {
-				image.setAround(x*resolutionRatio, y*resolutionRatio, pixelSize, green);
+				image.setAround(x*resolutionRatio + pixelSize/2, y*resolutionRatio + pixelSize/2, pixelSize, Color::Green);
 			} else if(x == goal.getX() && y == goal.getY()) {
-				image.setAround(x*resolutionRatio, y*resolutionRatio, pixelSize, blue);
+				image.setAround(x*resolutionRatio + pixelSize/2, y*resolutionRatio + pixelSize/2, pixelSize, Color::Blue);
 			} else {
 				unsigned char value = 255 - grid[y*getWidth() + x];
 				Color color(value, value, value);
-				image.setAround(x*resolutionRatio, y*resolutionRatio, pixelSize, color);
+				image.setAround(x*resolutionRatio + pixelSize/2, y*resolutionRatio + pixelSize/2, pixelSize, color);
 			}
 		}
 	}
@@ -154,7 +192,7 @@ const unsigned char MapSearchable::operator[](std::size_t i) const {
 }
 
 double MapSearchable::operator()(Location l) const {
-	return (*this)(l.getX(), l.getY());
+	return this->operator()(l.getX(), l.getY());
 }
 
 double MapSearchable::operator()(unsigned x, unsigned y) const {
@@ -172,7 +210,7 @@ std::ostream& operator<<(std::ostream& out, const MapSearchable& searchable) {
 		for (unsigned x = 0; x < width; ++x) {
 			unsigned pos = y*width + x;
 			out << " ";
-			if(y == searchable.start.getLocation().getY() && x == searchable.start.getX()) {
+			if(y == searchable.start.getY() && x == searchable.start.getX()) {
 				out << "S";
 			} else if(y == searchable.goal.getY() && x == searchable.goal.getX()) {
 				out << "G";

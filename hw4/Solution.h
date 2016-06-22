@@ -23,7 +23,7 @@ public:
     Path getPath() const;
     void setPath(Path path);
 
-    void save(const char* mapFilePath, float mapResolution) const;
+    void save(const char* mapFilePath) const;
 
     friend std::ostream& operator<<(std::ostream& out, const Solution& solution);
 };

@@ -52,3 +52,17 @@ unsigned char Color::getAlpha() const {
 void Color::setAlpha(unsigned char alpha) {
     this->alpha = alpha;
 }
+
+Color Color::Black(0, 0, 0);
+Color Color::White(255, 255, 255);
+Color Color::Gray(178, 178, 178);
+Color Color::Red(255, 0, 0);
+Color Color::Green(0, 255, 0);
+Color Color::Blue(0, 0, 255);
+Color Color::Yellow(255, 255, 0);
+Color Color::Cyan(0, 255, 255);
+Color Color::Magenta(255, 0, 255);
+
+std::ostream& operator<<(std::ostream& out, const Color& color) {
+	return out << (int)color.red << ", " << (int)color.green << ", " << (int)color.blue << ", " << (int)color.alpha;
+}
