@@ -32,10 +32,10 @@ void LocalizationManager::setMap(const Map& map) {
 	this->map = map;
 }
 
-void LocalizationManager::update(LaserProxy *lp,double dx, double dy, double dyaw){
+void LocalizationManager::update(LaserProxy *lp,double dx, double dy, double dyaw,double mapresoultion){
 	unsigned size = _particles.size();
 	for (unsigned i =0; i < size; i++){
-		_particles[i]->update(lp,dx,dy,dyaw,&this->map);
+		_particles[i]->update(lp,dx,dy,dyaw,&this->map,mapresoultion);
 		resampleParticles(i);
 	 }
 }

@@ -17,6 +17,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <time.h>
+#include <algorithm>
 
 #define PI 3.14159265
 #define NORMAL 2.5
@@ -37,7 +38,7 @@ public:
 
 	void setPosition(const Position& position);
 
-	void update(LaserProxy *lp,double dx, double dy, double dyaw, Map *map);
+	void update(LaserProxy *lp,double dx, double dy, double dyaw, Map *map,double mapResolution);
 
 	void printPartical(Map *map,const char* mapFilePath, float mapResolution);//in order to print one particle
 	void printPartical(Map *_map,Image *image, float mapResolution);//in order to save particle to image but not only one
@@ -46,7 +47,7 @@ public:
 
 	double helpFunc (double x);
 
-	double probaByLazer(LaserProxy *lp, Map *map);
+	double probaByLazer(LaserProxy *lp, Map *map,double mapResolution);
 
 	double probaByMove(double dx, double dy, double dyaw);
 
