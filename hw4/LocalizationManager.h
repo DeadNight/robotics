@@ -27,7 +27,7 @@ public:
 	const vector<Partical*>& getParticles() const;
 	void setParticles(const vector<Partical*>& particles);
 
-	 void update(LaserProxy *lp,double dx, double dy, double dyaw, double mapResolution);
+	 void update(LaserProxy *lp,double dx, double dy, double dyaw);
 
 	 void resampleParticles(unsigned i);
 	 Partical *getBestParticle();
@@ -37,7 +37,7 @@ public:
 
 	void addVector (vector<Partical*>& addVector);
 
-	 void printParticels(const char* mapFilePath, float mapResolution);
+	 void printParticels(const char* mapFilePath);
 
 };
 

@@ -20,7 +20,7 @@
 #include <algorithm>
 
 #define PI 3.14159265
-#define NORMAL 2.5
+#define NORMAL 1.2
 #define RANGE 3
 
 class Partical {
@@ -28,7 +28,7 @@ class Partical {
 	double belief;
 public:
 
-	Partical(Position p, double belief);
+	Partical(Map *map,Position p, double belief);
 
 	double getBelief() const;
 
@@ -38,16 +38,16 @@ public:
 
 	void setPosition(const Position& position);
 
-	void update(LaserProxy *lp,double dx, double dy, double dyaw, Map *map,double mapResolution);
+	void update(LaserProxy *lp,double dx, double dy, double dyaw, Map *map);
 
-	void printPartical(Map *map,const char* mapFilePath, float mapResolution);//in order to print one particle
-	void printPartical(Map *_map,Image *image, float mapResolution);//in order to save particle to image but not only one
+	void printPartical(Map *map,const char* mapFilePath);//in order to print one particle
+	void printPartical(Map *_map,Image *image);//in order to save particle to image but not only one
 
 	Path linearPath(Location a, Location b);
 
 	double helpFunc (double x);
 
-	double probaByLazer(LaserProxy *lp, Map *map,double mapResolution);
+	double probaByLazer(LaserProxy *lp, Map *map);
 
 	double probaByMove(double dx, double dy, double dyaw);
 

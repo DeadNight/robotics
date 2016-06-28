@@ -32,10 +32,10 @@ void LocalizationManager::setMap(const Map& map) {
 	this->map = map;
 }
 
-void LocalizationManager::update(LaserProxy *lp,double dx, double dy, double dyaw,double mapresoultion){
+void LocalizationManager::update(LaserProxy *lp,double dx, double dy, double dyaw){
 	unsigned size = _particles.size();
 	for (unsigned i =0; i < size; i++){
-		_particles[i]->update(lp,dx,dy,dyaw,&this->map,mapresoultion);
+		_particles[i]->update(lp,dx,dy,dyaw,&this->map);
 		resampleParticles(i);
 	 }
 }
@@ -88,10 +88,10 @@ void LocalizationManager::update(LaserProxy *lp,double dx, double dy, double dya
 	 this->_particles.insert(it,addVector.begin(),addVector.end());
  }
 
- void LocalizationManager::printParticels(const char* mapFilePath, float mapResolution){
+ void LocalizationManager::printParticels(const char* mapFilePath){
 	Image image = map.toImage();
 	 for (unsigned i =0; i < _particles.size(); i++){
-		 _particles[i]->printPartical(&this->map,&image,mapResolution);
+		 _particles[i]->printPartical(&this->map,&image);
 	 }
 	 image.save(mapFilePath);
  }

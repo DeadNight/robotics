@@ -7,9 +7,10 @@
 
 #include "Partical.h"
 
-Partical::Partical(Position p, double belief) {
-	this->position=p;
-	this->belief=belief;
+Partical::Partical(Map *_map,Position p, double belief) {
+	p.setLocation(_map->getWorldLocation(_map->getGridPosition(p).getLocation()));
+	setPosition(p);
+	setBelief(belief);
 }
 
 
@@ -29,34 +30,30 @@ void Partical::setPosition(const Position& position) {
 	this->position= position;
 }
 
-void Partical::update(LaserProxy *lp,double dx, double dy, double dyaw, Map *map,double mapResolution){
+void Partical::update(LaserProxy *lp,double dx, double dy, double dyaw, Map *_map){
 
 	this->position.setLocation(Location(this->position.getX()+dx,this->position.getY()+dy));
 	this->position.setYaw(this->position.getYaw()+dyaw);
-	this->belief=NORMAL*this->belief*probaByMove(dx,dy,dyaw)*probaByLazer(lp,map,mapResolution);
+	this->belief=NORMAL*this->belief*probaByMove(dx,dy,dyaw)*probaByLazer(lp,_map);
 	cout <<this->belief<< endl;
 	cout <<"belief by move  " << probaByMove(dx,dy,dyaw)<< endl;
 
 }
 
-void Partical::printPartical(Map *_map,const char* mapFilePath, float mapResolution){
-	Color red(255,0,0);
-	double resolutionRatio = (double)_map->getGridResolution() / mapResolution;
+void Partical::printPartical(Map *_map,const char* mapFilePath){
 	Image image = _map->toImage();
 	Location l;
-	l.setX(position.getLocation().getX()*resolutionRatio);
-	l.setY(position.getLocation().getY()*resolutionRatio);
-	image.setAround(l,red);
+	l.setX(position.getLocation().getX()/ _map->getMapResolution());
+	l.setY(position.getLocation().getY()/ _map->getMapResolution());
+	image.setAround(l,Color::Red);
 	image.save(mapFilePath);
 }
 
-void Partical::printPartical(Map *_map,Image *image, float mapResolution){
-	Color red(255,0,0);
-	double resolutionRatio = (double)_map->getGridResolution() / mapResolution;
+void Partical::printPartical(Map *_map,Image *image){
 	Location l;
-	l.setX(position.getLocation().getX()*resolutionRatio);
-	l.setY(position.getLocation().getY()*resolutionRatio);
-	image->setAround(l,red);
+	l.setX(position.getLocation().getX()/ _map->getMapResolution());
+	l.setY(position.getLocation().getY() / _map->getMapResolution());
+	image->setAround(l,Color::Red);
 }
 Path Partical::linearPath(Location from, Location to){
 
@@ -159,49 +156,45 @@ Path Partical::linearPath(Location from, Location to){
 double Partical::helpFunc (double x){
 	return 1-fabs(atan(x)/(PI/2));
 }
-double Partical::probaByLazer(LaserProxy *lp, Map *_map,double mapResolution){
+double Partical::probaByLazer(LaserProxy *lp, Map *_map){
 	double hits = 0;
 	int cnt=0;
-	double resolutionRatio = (double)_map->getGridResolution() / mapResolution;
-	Image image = _map->toImage();
-	Color yellow(0,255,0);
-	Color two(0,0,255);
-	Color three(200,200,50);
-	Color four(255,0,0);
+	//Image image = _map->toImage();
+
 	for(uint i = 0; i < lp->GetCount(); ++i) {
-		double d = resolutionRatio*(*lp)[i];
+		double d = 100*(*lp)[i];
 		//cout<<"d "<<d<<endl;
 		double angle =  dtor(this->position.getYaw()) + lp->GetBearing(i);
 		//cout<<"yaw: "<<this->position.getYaw()<<endl;
-		double xObs = this->position.getX() + 2*d*cos(angle);
-		double yObs = this->position.getY() - 2*d*sin(angle);
-		cout<<"angle= "<<angle<<endl;
+		double xObs = this->position.getX() + d*cos(angle);
+		double yObs = this->position.getY() - d*sin(angle);
+
 		Path temp=linearPath(Location(this->position.getX(),this->position.getY()),Location(xObs,yObs));
 
-		if (temp.getPath().size()==0)
-		{
-			cout<<"lp "<<i<<endl;
-		}
-		for (unsigned z=0; z<temp.getPath().size();z++){
-				image.setAround(Location(temp.getPath()[z].getX()*resolutionRatio,temp.getPath()[z].getY()*resolutionRatio),yellow);
-		}
-		image.setAround(Location(xObs*resolutionRatio,yObs*resolutionRatio),four);
 
-		if (d < lp->GetMaxRange()){
+		/*for (unsigned z=0; z<temp.getPath().size();z++){
+				image.setAround(Location(temp.getPath()[z].getX()/ _map->getMapResolution(),temp.getPath()[z].getY()/ _map->getMapResolution()),Color::Green);
+		}
+		image.setAround(Location(xObs/ _map->getMapResolution(),yObs/ _map->getMapResolution()),Color::Magenta);*/
+
+		if (d < 100*lp->GetMaxRange()){
 			for (unsigned j =0 ; j <temp.getPath().size(); j++){
 				//cout<< j<<"j:  "<<temp.getPath()[j].getX()<< ","<<temp.getPath()[j].getY()<< "= "<< (*_map)(temp.getPath()[j].getX(),temp.getPath()[j].getY())<<endl;
-				if ((*_map)(temp.getPath()[j].getX(),temp.getPath()[j].getY())==1){
-					if (fabs(temp.getPath()[j].getX())-xObs<1 && fabs(temp.getPath()[j].getY())-yObs<1)
+				Location location= _map->getGridLocation(Location(temp.getPath()[j].getX(),temp.getPath()[j].getY()));
+				if ((*_map)(location)==1){
+					/*cout<<"x-obs= "<<fabs(temp.getPath()[j].getX()-xObs)<<endl;
+					cout<<"yobs= "<<fabs(temp.getPath()[j].getY()-xObs)<<endl;*/
+					if (fabs(temp.getPath()[j].getX()-xObs)<1*_map->getGridResolution() && fabs(temp.getPath()[j].getY()-yObs)<1*_map->getGridResolution())
 					{
 						hits++;
 					}
-					else if (fabs(temp.getPath()[j].getX())-xObs<2 && fabs(temp.getPath()[j].getY())-yObs<2)
+					else if (fabs(temp.getPath()[j].getX()-xObs)<2*_map->getGridResolution() && fabs(temp.getPath()[j].getY()-yObs<2*_map->getGridResolution()))
 					{
 						hits+=0.9;
 					}
 
-					Location l(temp.getPath()[j].getX()*resolutionRatio,temp.getPath()[j].getY()*resolutionRatio);
-					image.setAround(l,two);
+/*					Location l(temp.getPath()[j].getX()/_map->getMapResolution(),temp.getPath()[j].getY()/ _map->getMapResolution());
+					image.setAround(l,Color::Blue);*/
 					break;
 				}
 			}
@@ -210,27 +203,30 @@ double Partical::probaByLazer(LaserProxy *lp, Map *_map,double mapResolution){
 			bool check=false;
 			for (unsigned k = 0; k <= temp.getPath().size(); k++){
 				//cout<<k<< "k= "<< temp.getPath()[k].getX()<< ","<<temp.getPath()[k].getY()<< "= "<< (*_map)(temp.getPath()[k].getX(),temp.getPath()[k].getY())<<endl;
-				if ((*_map)(temp.getPath()[k].getX(),temp.getPath()[k].getY())==1){
-					if (fabs(temp.getPath()[k].getX())-xObs<2 && fabs(temp.getPath()[k].getY())-yObs<2)
+				Location location= _map->getGridLocation(Location(temp.getPath()[k].getX(),temp.getPath()[k].getY()));
+				/*cout<<"x-obs= "<<fabs(temp.getPath()[k].getX()-xObs)<<endl;
+				cout<<"y-obs= "<<fabs(temp.getPath()[k].getY()-xObs)<<endl;*/
+				if ((*_map)(location)==1){
+					if (fabs(temp.getPath()[k].getX())-xObs<2*_map->getGridResolution() && fabs(temp.getPath()[k].getY()-yObs<2*_map->getGridResolution()))
 					{
 						hits+=0.9;
 					}
 					check=true;
-					Location l(temp.getPath()[k].getX()*resolutionRatio,temp.getPath()[k].getY()*resolutionRatio);
-					image.setAround(l,two);
+					/*Location l(temp.getPath()[k].getX()/_map->getMapResolution(),temp.getPath()[k].getY()/ _map->getMapResolution());
+					image.setAround(l,Color::Blue);*/
 					break;
 				}
 			}
 			if (!check){
 				cnt++;
 				hits++;
-				Location l(temp.getPath()[temp.getPath().size()-1].getX()*resolutionRatio,temp.getPath()[temp.getPath().size()-1].getY()*resolutionRatio);
-				image.setAround(l,two);
+				/*Location l(temp.getPath()[temp.getPath().size()-1].getX()/_map->getMapResolution(),temp.getPath()[temp.getPath().size()-1].getY()/ _map->getMapResolution());
+				image.setAround(l,Color::Blue);*/
 			}
 		}
 	}
-	image.setAround(Location(this->getPosition().getX()*resolutionRatio,this->getPosition().getY()*resolutionRatio),four);
-	image.save("test.png");
+	/*image.setAround(Location(this->getPosition().getX()/ _map->getMapResolution(),this->getPosition().getY()/ _map->getMapResolution()),Color::Red);
+	image.save("test.png");*/
 	cout<<"cnt: = "<<cnt<<endl;
 	cout<<"hits: = "<<hits<<endl;
 	cout<<"counts: = "<<lp->GetCount()<<endl;
@@ -239,9 +235,7 @@ double Partical::probaByLazer(LaserProxy *lp, Map *_map,double mapResolution){
 }
 
 double Partical::probaByMove(double dx, double dy, double dyaw){
-	cout<< "dx: " << dx<< endl<< "dy: " << dy<< endl<< "dz: " << dyaw<< endl;
 	double disntance = sqrt(pow(dx,2)+pow(dy,2));
-	cout<< "distance: " << disntance<< endl;
 	return helpFunc(disntance+fabs(dyaw));
 
  }
@@ -268,11 +262,14 @@ vector <Partical*> Partical::particleMulti(int num, Map *_map){
 	srand (time(NULL));
 	vector <Partical*> _particles;
 	vector <double> vars = random_numbers();
-	Partical* temp = new Partical(Position(this->getPosition().getX()+vars[0],this->getPosition().getY()+vars[1],this->getPosition().getYaw()+vars[2]),this->getBelief());
+	Partical* temp =new Partical(_map,Position(this->getPosition().getX()+vars[0]*_map->getGridResolution(),this->getPosition().getY()+vars[1]*_map->getGridResolution(),this->getPosition().getYaw()+vars[2]),this->getBelief());
+
 	for (int i=0; i<num;i++){
-		while (_particles.end()!=find(_particles,*temp) || (*_map)(this->getPosition().getX()+vars[0],this->getPosition().getY()+vars[1])==1){
+		Location location= _map->getGridLocation(Location(this->getPosition().getX()+vars[0]*_map->getGridResolution(),this->getPosition().getY()+vars[1]*_map->getGridResolution()));
+		while (_particles.end()!=find(_particles,*temp) || (*_map)(location)==1){
 			vars = random_numbers();
-			temp =new Partical(Position(this->getPosition().getX()+vars[0],this->getPosition().getY()+vars[1],this->getPosition().getYaw()+vars[2]),this->getBelief());
+			temp =new Partical(_map,Position(this->getPosition().getX()+vars[0]*_map->getGridResolution(),this->getPosition().getY()+vars[1]*_map->getGridResolution(),this->getPosition().getYaw()+vars[2]),this->getBelief());
+
 		}
 		_particles.push_back(temp);
 	}
