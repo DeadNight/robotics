@@ -21,7 +21,6 @@ void Particle::setBelief(double belief) {
 }
 
 Position Particle::getPosition() const {
-	std::cout << "*** " << position << " --> " << map->getWorldPosition(position) << std::endl;
 	return map->getWorldPosition(position);
 }
 
@@ -56,82 +55,44 @@ void Particle::printParticle(Image& image){
 	image.setAround(l, Color::Red);
 }
 
-Path Particle::linearPath(const Location& from, const Location& to){
-	double x, y, dx, dy, dx1, dy1, px, py, xe, ye, i;
-	std::vector<Location> temp;
-	double x1 = from.getX();
-	double x2 = to.getX();
-	double y1 = from.getY();
-	double y2 = to.getY();
+double Particle::hitTest(double distance, double angle, double maxDistance) {
+	double x, y, dx, dy, xe, ye, d;
 
-	dx = x2 - x1;
-	dy = y2 - y1;
-	dx1 = fabs(dx);
-	dy1 = fabs(dy);
-	px = 2*dy1 - dx1;
-	py = 2*dx1 - dy1;
+	Location obs(
+		position.getX() + distance*cos(angle) / map->getGridResolution(),
+		position.getY() - distance*sin(angle) / map->getGridResolution()
+	);
 
-	if(dy1 <= dx1) {
-		if(dx >= 0) {
-			x = x1;
-			y = y1;
-			xe = x2;
-		} else {
-			x = x2;
-			y = y2;
-			xe = x1;
-		}
+	dx = obs.getX() - position.getX();
+	dy = obs.getY() - position.getY();
 
-		temp.push_back(Location(x, y));
-		for(i = 0; x < xe; ++i) {
-			x = x + 1;
-			if(px < 0) {
-				px = px + 2*dy1;
-			} else {
-				if((dx < 0 && dy < 0) || (dx > 0 && dy > 0)) {
-					++y;
-				} else {
-					--y;
-				}
-				px += 2 * (dy1 - dx1);
-			}
+	x = position.getX();
+	y = position.getY();
+	xe = obs.getX();
+	ye = obs.getY();
 
-			temp.push_back(Location(x, y));
-		}
+	if(fabs(dy) <= fabs(dx)) {
+		dy = dy / fabs(dx);
+		dx = 1;
 	} else {
-		if(dy >= 0) {
-			x = x1;
-			y = y1;
-			ye = y2;
-		} else {
-			x = x2;
-			y = y2;
-			ye = y1;
-		}
+		dx = dx / fabs(dy);
+		dx = 1;
+	}
 
-		temp.push_back(Location(x, y));
+	while((fabs(dy) <= fabs(dx) && ((dx >= 0 && x < xe) || (dx < 0 && x > xe)))
+			|| (fabs(dy) > fabs(dx) && ((dy >= 0 && y < ye) || (dy < 0 && y > ye)))) {
+		x += dx;
+		y += dy;
 
-		for(i = 0; y < ye; ++i) {
-			++y;
-			if(py <= 0) {
-				py += 2 * dx1;
-			} else {
-				if((dx < 0 && dy < 0) || (dx > 0 && dy > 0)) {
-					++x;
-				} else {
-					--x;
-				}
-				py += 2 * (dx1 - dy1);
-			}
-			temp.push_back(Location(x, y));
+		d = sqrt(pow(position.getX() - x, 2) + pow(position.getY() - y, 2));
+		if((*map)((int)x, (int)y) == 1) {
+			return distance < maxDistance ? d : maxDistance;
+		} else if(d >= distance + 1) {
+			return distance < maxDistance ? d : INT_MAX;
 		}
 	}
 
-	if (temp[0].getX() != from.getX() || temp[0].getY() != from.getY()) {
-		std::reverse(temp.begin(),temp.end());
-	}
-
-	 return(Path(temp));
+	 return sqrt(pow(position.getX() - x, 2) + pow(position.getY() - y, 2));
 }
 
 //Function that returns values between 0 to 1
@@ -139,61 +100,23 @@ Path Particle::linearPath(const Location& from, const Location& to){
 double Particle::helpFunc (double x){
 	return 1 - fabs(atan(x) / (PI/2));
 }
-double Particle::probaByLazer(const LaserProxy& lp){
+double Particle::probaByLazer(const LaserProxy& lp) {
 	double hits = 0;
-	int cnt = 0;
-	//Image image = _map->toImage();
+	double dMax = 100 * lp.GetMaxRange();
 
 	for(uint i = 0; i < lp.GetCount(); ++i) {
 		double d = 100 * lp[i];
 		double angle = dtor(position.getYaw()) + lp.GetBearing(i);
-		double xObs = position.getX() + d*cos(angle) / map->getGridResolution();
-		double yObs = position.getY() - d*sin(angle) / map->getGridResolution();
 
-		Path path = linearPath(Location(position.getX(), position.getY()), Location(xObs,yObs));
+		double hit = hitTest(d, angle, dMax);
 
-		/*for (unsigned z=0; z<temp.getPath().size();z++){
-				image.setAround(Location(temp.getPath()[z].getX()/ _map->getMapResolution(),temp.getPath()[z].getY()/ _map->getMapResolution()),Color::Green);
-		}
-		image.setAround(Location(xObs/ _map->getMapResolution(),yObs/ _map->getMapResolution()),Color::Magenta);*/
-
-		if(d < 100 * lp.GetMaxRange()){
-			for(unsigned j = 0; j < path.size(); ++j) {
-				if((*map)(path[j]) == 1) {
-					if(fabs(path[j].getX() - xObs) < 1 && fabs(path[j].getY() - yObs) < 1) {
-						++hits;
-					} else if(fabs(path[j].getX()-xObs) < 2 && fabs(path[j].getY() - yObs < 2)) {
-						hits += 0.9;
-					}
-
-/*					Location l(temp.getPath()[j].getX()/_map->getMapResolution(),temp.getPath()[j].getY()/ _map->getMapResolution());
-					image.setAround(l,Color::Blue);*/
-					break;
-				}
-			}
-		} else {
-			bool check = false;
-			for(unsigned k = 0; k <= path.size(); ++k) {
-				if((*map)(path[k]) == 1) {
-					if(fabs(path[k].getX()) - xObs < 2 && fabs(path[k].getY() - yObs < 2)) {
-						hits += 0.9;
-					}
-					check = true;
-					/*Location l(temp.getPath()[k].getX()/_map->getMapResolution(),temp.getPath()[k].getY()/ _map->getMapResolution());
-					image.setAround(l,Color::Blue);*/
-					break;
-				}
-			}
-			if(!check){
-				++cnt;
-				++hits;
-				/*Location l(temp.getPath()[temp.getPath().size()-1].getX()/_map->getMapResolution(),temp.getPath()[temp.getPath().size()-1].getY()/ _map->getMapResolution());
-				image.setAround(l,Color::Blue);*/
-			}
+		if(fabs(hit - d) < 1) {
+			++hits;
+		} else if(fabs(hit - d) < 2) {
+			hits += 0.9;
 		}
 	}
-	/*image.setAround(Location(this->getPosition().getX()/ _map->getMapResolution(),this->getPosition().getY()/ _map->getMapResolution()),Color::Red);
-	image.save("test.png");*/
+
 	return hits / lp.GetCount();
 }
 

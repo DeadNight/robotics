@@ -45,15 +45,15 @@ Position LocalizationManager::update(const LaserProxy& lp, const Deltas& deltas)
 		Particle& p = *it;
 
 		if(p.getBelief() <= middle / 2) {
-			std::cout << "*** throwing " << p.getPosition() << " (" << p.getBelief() << ")" << std::endl;
+			//std::cout << "*** throwing " << p.getPosition() << " (" << p.getBelief() << ")" << std::endl;
 			it = particles.erase(it);
 		} else {
 			double multiplier = 1;
 			if(p.getBelief() >= middle && p.getBelief() < middle * 3/2) {
-				std::cout << "*** spawning 2 " << p.getPosition() << " (" << p.getBelief() << ")" << std::endl;
+				//std::cout << "*** spawning 2 " << p.getPosition() << " (" << p.getBelief() << ")" << std::endl;
 				multiplier = 2;
 			} else if(p.getBelief() >= middle * 3/2) {
-				std::cout << "*** spawning 4 " << p.getPosition() << " (" << p.getBelief() << ")" << std::endl;
+				//std::cout << "*** spawning 4 " << p.getPosition() << " (" << p.getBelief() << ")" << std::endl;
 				multiplier = 4;
 			}
 

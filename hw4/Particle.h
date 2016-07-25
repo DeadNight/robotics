@@ -46,7 +46,7 @@ public:
 	//in order to save particle to image but not only one
 	void printParticle(Image& image);
 
-	Path linearPath(const Location& a, const Location& b);
+	double hitTest(double distance, double angle, double maxDistance);
 
 	double helpFunc (double x);
 
