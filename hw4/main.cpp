@@ -18,9 +18,8 @@
 #include "Solution.h"
 #include "Robot.h"
 #include "Astar.h"
-#include "Partical.h"
 #include "LocalizationManager.h"
-#include <libplayerc++/playerc++.h>
+#include "Deltas.h"
 
 using namespace std;
 
@@ -69,8 +68,7 @@ int main() {
 
 	vector<Location> locations;
 
-	cout << "searching path... ";
-	cout.flush();
+	cout << "searching path... " << flush;
 	Astar astar(searchable);
 	Path path = astar.search();
 	cout << "done" << endl;
@@ -94,35 +92,37 @@ int main() {
 	reducedSolution.save("reducedSolution.png");
 	cout << "done" << endl;
 
-	cout << "connecting to robot... ";
-	Robot robot("localhost", 6665, config.getRobotSize(), start);
-	cout << "moving robot to goal... ";
-	robot.moveTo(path);
+	cout << "creating localization manager... ";
+	LocalizationManager localizationManager(start, map);
 	cout << "done" << endl;
 
-/*
-	Partical particl(start, 1);
-	cout << particl.getPosition() << endl << particl.getBelief() << endl;
+	cout << "connecting to robot... ";
+	Robot robot("localhost", 6665, config.getRobotSize(), start);
+	cout << "setting robot path... ";
+	robot.setPath(path);
 
-	vector<Partical *> _particles;
-	_particles.push_back(&particl);
+	cout << "done" << endl
+		 << "moving robot to goal... " << endl;
+	while(true) {
+		//cout << '\t' << "reading robot sensors... ";
+		Deltas deltas = robot.read();
 
-	LocalizationManager local(_particles,map);
+		cout << "done" << endl
+			 << '\t' << "updating localization manager... " << flush;
+		const Position& approxPosition = localizationManager.update(robot.getLaserProxy(), deltas);
 
-	PlayerClient *pc=  new PlayerClient("localhost",6665);
+		cout << "done" << endl
+			 << '\t' << "setting robot position (" << approxPosition << ")... " << endl;
+		robot.setPosition(approxPosition);
 
-	LaserProxy *lp= new LaserProxy(pc);
-	Position2dProxy *pp = new Position2dProxy(pc);
+		if(robot.isAt(path[path.size() - 1]))
+			break;
 
-	pp->SetMotorEnable(true);
-	pc->Read();
-	pp->SetSpeed(0.1, 0);
-	pc->Read();
-
-	double num =1;
-	local.update(lp,num,num,num);
-	local.printParticels("particles.png",mapResolution);
-*/
+		//cout<< '\t' << "moving robot... ";
+		robot.move();
+		//cout << "done" << endl;
+	}
+	cout << "done" << endl;
 
 	cout << "Success" << endl;
 	return 0;

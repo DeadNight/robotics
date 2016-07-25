@@ -23,12 +23,15 @@ public:
 
 	Location getLocation() const;
     void setLocation(Location location);
+    void setLocation(double x, double y);
 
     double getX() const;
     double getY() const;
 
     double getYaw() const;
     void setYaw(double yaw);
+
+    void set(double x, double y, double yaw);
 
     inline Position& operator+=(const double scalar) {
 		location += scalar;

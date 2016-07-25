@@ -23,6 +23,10 @@ Location Position::getLocation() const {
 	return location;
 }
 
+void Position::setLocation(double x, double y) {
+	setLocation(Location(x, y));
+}
+
 void Position::setLocation(Location location) {
 	this->location = location;
 }
@@ -40,6 +44,11 @@ double Position::getYaw() const {
 
 void Position::setYaw(double yaw) {
 	this->yaw = yaw;
+}
+
+void Position::set(double x, double y, double yaw) {
+	setLocation(x, y);
+	setYaw(yaw);
 }
 
 std::ostream& operator<<(std::ostream& out, const Position& position) {

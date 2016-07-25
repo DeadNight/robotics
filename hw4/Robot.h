@@ -15,6 +15,7 @@
 #include "Map.h"
 #include "Location.h"
 #include "Path.h"
+#include "Deltas.h"
 
 using namespace std;
 using namespace PlayerCc;
@@ -32,6 +33,10 @@ class Robot {
 
 	Size size;
 	Position position;
+	Path const* path;
+	unsigned nextPathIndex;
+
+	Position* lastPosition;
 public:
 	Robot(const char* host, unsigned port, Size size, Position position);
 	virtual ~Robot();
@@ -55,25 +60,33 @@ public:
     Location getLocation() const;
 
     Position getStagePosition() const;
-    Position getStagePosition(Position position) const;
+    Position getStagePosition(const Position& position) const;
 
     Location getStageLocation() const;
-    Location getStageLocation(Location location) const;
+    Location getStageLocation(const Location& location) const;
 
     double getX() const;
     double getY() const;
     double getYaw() const;
 
-    Map getMap() const;
-    void setMap(Map map);
+    const LaserProxy& getLaserProxy() const;
 
-    void moveTo(Path path);
-    void moveTo(Location location);
+    void setPath(const Path& p);
 
-    double distanceTo(Location stageLocation) const;
-    double angleTo(Location target) const;
+    bool isAt(const Location& l) const;
 
-    void drawPoint(Location stageLocation, player_color color) const;
+    Deltas read();
+
+    void move();
+
+    void moveTo(const Path& path);
+    void moveTo(const Location& location);
+
+    double distanceTo(const Location& stageLocation) const;
+    double angleTo(const Location& target) const;
+
+    void drawPoint(const Position& stagePosition, Color color) const;
+    void drawPoint(const Location& stageLocation, Color color) const;
 };
 
 #endif /* ROBOT_H_ */

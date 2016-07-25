@@ -7,91 +7,84 @@
 
 #include "LocalizationManager.h"
 
-LocalizationManager::LocalizationManager() {}
+LocalizationManager::LocalizationManager() { }
 
-LocalizationManager::LocalizationManager(vector<Partical *> _particles, Map map) {
-	setParticles(_particles);
-	setMap(map);
-}
-
-LocalizationManager::~LocalizationManager(){}
-
-const vector<Partical*>& LocalizationManager::getParticles() const {
-		return _particles;
-	}
-
-void LocalizationManager::setParticles(const vector<Partical*>& particles) {
-	_particles = particles;
+LocalizationManager::LocalizationManager(const Position& start, Map map) : map(map) {
+	Particle particle(map, start, 1);
+	particles.push_back(particle);
 }
 
 const Map& LocalizationManager::getMap() const {
-		return map;
-	}
+	return map;
+}
 
 void LocalizationManager::setMap(const Map& map) {
 	this->map = map;
 }
 
-void LocalizationManager::update(LaserProxy *lp,double dx, double dy, double dyaw){
-	unsigned size = _particles.size();
-	for (unsigned i =0; i < size; i++){
-		_particles[i]->update(lp,dx,dy,dyaw,&this->map);
-		resampleParticles(i);
-	 }
+const Position& LocalizationManager::update(const LaserProxy& lp, const Deltas& deltas) {
+	double middle = getMidBelife();
+	double max = 0;
+	 const Particle* bestParticle;
+	vector<Particle> newParticles;
+	vector<Particle>::iterator it = particles.begin();
+
+	while(it != particles.end()) {
+		Particle& p = *it;
+		p.update(lp, deltas, map);
+
+		if(p.getBelief() <= middle / 2) {
+			it = particles.erase(it);
+		} else {
+			if(p.getBelief() > max){
+				 max = p.getBelief();
+				 bestParticle = &p;
+			 }
+
+			double multiplier = 1;
+			if(p.getBelief() >= middle && p.getBelief() < middle * 3/2) {
+				multiplier = 2;
+			} else if(p.getBelief() >= middle * 3/2) {
+				multiplier = 4;
+			}
+
+			if(multiplier > 1) {
+				vector<Particle> spawnedParticles = p.spawnParticles(multiplier, map);
+				concatVector(newParticles, spawnedParticles);
+			}
+
+			++it;
+		}
+	}
+
+	concatVector(particles, newParticles);
+
+	return bestParticle->getPosition();
 }
 
- void LocalizationManager::resampleParticles(unsigned i){
-	 double middle = getMidBelife();
-	 vector <Partical*> multiPart;
-		 if(_particles[i]->getBelief()<=(middle/2)){
-			_particles.erase (_particles.begin()+3);
-		 }
-		 else if((_particles[i]->getBelief()>=(middle)) && (_particles[i]->getBelief()<(middle*3/2) )){
-				multiPart = _particles[i]->particleMulti(2,&this->map);
-				addVector(multiPart);
-		 }
-		 else if((_particles[i]->getBelief()>=(middle*3/2))){
-				multiPart = _particles[i]->particleMulti(4,&this->map);
-				addVector(multiPart);
-		 }
- }
+double LocalizationManager::getMidBelife() {
+	double max = 0, min = 1;
 
- Partical* LocalizationManager::getBestParticle(){
-	 double max =0;
-	 Partical *temp;
-	 for (unsigned i =0; i < _particles.size(); i++){
-		 if(_particles[i]->getBelief()>max){
-			 max = _particles[i]->getBelief();
-			 temp = _particles[i];
-		 }
-	 }
-	 return temp;
- }
+	for(vector<Particle>::iterator it = particles.begin(); it != particles.end(); ++it) {
+		Particle& p = *it;
+		if(p.getBelief() > max)
+			max = p.getBelief();
 
- double LocalizationManager::getMidBelife(){
-	 double max =0;
-	 double min =1;
-	 for (unsigned i =0; i < _particles.size(); i++){
-		 if(_particles[i]->getBelief()>max){
-			 max = _particles[i]->getBelief();
-		 }
-		 if(_particles[i]->getBelief()<min){
-		 			 min = _particles[i]->getBelief();
-		 }
-	 }
-	 double mid = (min+max)/2;
-	 return mid;
- }
+		if(p.getBelief() < min)
+			min = p.getBelief();
+	}
 
- void LocalizationManager::addVector (vector<Partical*>& addVector){
-	 std::vector<Partical*>::iterator it = this->_particles.end();
-	 this->_particles.insert(it,addVector.begin(),addVector.end());
- }
+	return (min + max)/2;
+}
+
+void LocalizationManager::concatVector(vector<Particle>& lhs, vector<Particle>& rhs){
+	lhs.insert(lhs.end(), rhs.begin(), rhs.end());
+}
 
  void LocalizationManager::printParticels(const char* mapFilePath){
 	Image image = map.toImage();
-	 for (unsigned i =0; i < _particles.size(); i++){
-		 _particles[i]->printPartical(&this->map,&image);
+	 for (unsigned i =0; i < particles.size(); i++){
+		 particles[i].printParticle(map, image);
 	 }
 	 image.save(mapFilePath);
  }

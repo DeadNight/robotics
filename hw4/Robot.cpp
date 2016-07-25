@@ -12,13 +12,15 @@ double Robot::maxMargin = 2.75;
 double Robot::maxSpeed = 0.7;
 double Robot::maxTurnSpeed = 0.5;
 
-Robot::Robot(const char* host, unsigned port, Size size, Position position) : size(size) {
+Robot::Robot(const char* host, unsigned port, Size size, Position position)
+				: size(size), lastPosition(NULL) {
 	pc = new PlayerClient(host,port);
 	pp = new Position2dProxy(pc);
 	lp = new LaserProxy(pc);
 	gp = new Graphics2dProxy(pc);
 
-	setPosition(getStagePosition(position), true);
+	setPosition(position);
+	pp->SetOdometry(position.getX(), position.getY(), position.getYaw());
 }
 
 Robot::~Robot() {
@@ -26,6 +28,8 @@ Robot::~Robot() {
 	delete lp;
 	delete pp;
 	delete pc;
+	if(lastPosition != NULL)
+		delete lastPosition;
 }
 
 Size Robot::getSize() const {
@@ -65,13 +69,9 @@ Position Robot::getPosition() const {
 }
 
 void Robot::setPosition(Position position) {
-	setPosition(position, false);
-}
+	this->position = getStagePosition(position);
 
-void Robot::setPosition(Position position, bool setOdometry) {
-	this->position = position;
-	if(setOdometry)
-		pp->SetOdometry(position.getX(), position.getY(), position.getYaw());
+	drawPoint(position, Color::Magenta);
 }
 
 Location Robot::getLocation() const {
@@ -82,7 +82,7 @@ Position Robot::getStagePosition() const {
 	return getStagePosition(position);
 }
 
-Position Robot::getStagePosition(Position position) const {
+Position Robot::getStagePosition(const Position& position) const {
 	Position stagePosition(
 		getStageLocation(position.getLocation()),
 		dtor(position.getYaw())
@@ -94,7 +94,7 @@ Location Robot::getStageLocation() const {
 	return getStageLocation(getLocation());
 }
 
-Location Robot::getStageLocation(Location location) const {
+Location Robot::getStageLocation(const Location& location) const {
 	Location stageLocation(
 		(location.getX() / 100) - (13.75/2),
 		-(location.getY() / 100) + (9.5/2)
@@ -114,19 +114,106 @@ double Robot::getYaw() const {
 	return position.getYaw();
 }
 
-void Robot::moveTo(Path path) {
+const LaserProxy& Robot::getLaserProxy() const {
+	return *lp;
+}
+
+void Robot::setPath(const Path& p) {
+	path = &p;
+
+	double d, minDist = distanceTo((*path)[1]);
+
+	for(unsigned i = 0; i < path->size(); ++i) {
+		if((d = distanceTo(getStageLocation((*path)[i]))) <= minDist) {
+			minDist = d;
+			nextPathIndex = i + 1;
+		}
+	}
+}
+
+bool Robot::isAt(const Location& l) const {
+	double biggestSize = getWidth() > getHeight() ? getWidthMeters() : getHeightMeters();
+	return distanceTo(getStageLocation(l)) <= biggestSize/2;
+}
+
+Deltas Robot::read() {
+	pc->Read();
+
+	if(lastPosition == NULL) {
+		lastPosition = new Position(pp->GetXPos(), pp->GetYPos(), pp->GetYaw());
+		return Deltas(0, 0, 0);
+	} else {
+		Deltas deltas(100 * (pp->GetXPos() - lastPosition->getX())
+							, 100 * (pp->GetYPos() - lastPosition->getY())
+							, pp->GetYaw() - lastPosition->getYaw());
+		lastPosition->set(pp->GetXPos(), pp->GetYPos(), pp->GetYaw());
+		return deltas;
+	}
+}
+
+void Robot::move() {
+	while(nextPathIndex < path->size() && isAt((*path)[nextPathIndex])) {
+		++nextPathIndex;
+	}
+
+	//std::cout << "*** next: " << nextPathIndex << std::endl;
+
+	if(nextPathIndex < path->size()) {
+		Location target = getStageLocation((*path)[nextPathIndex]);
+
+		gp->Clear();
+
+		drawPoint(position.getLocation(), Color::Magenta);
+		drawPoint(target, Color::Cyan);
+
+		player_point_2d points[2];
+		points[0].px = getX();
+		points[0].py = getY();
+		points[1].px = target.getX();
+		points[1].py = target.getY();
+
+		gp->Color(255, 0, 0, 255);
+		gp->DrawPolyline(points, 2);
+
+		double targetYaw = angleTo(target);
+
+		double yawDiff = targetYaw - getYaw();
+
+		while(yawDiff < dtor(180))
+			yawDiff += dtor(360);
+		while(yawDiff > dtor(180))
+			yawDiff -= dtor(360);
+
+		double speed;
+		if(abs(yawDiff) < 0.1)
+			speed = maxSpeed;
+		else if(abs(yawDiff) > dtor(45))
+			speed = 0;
+		else
+			speed = maxSpeed * (1 - (abs(yawDiff) / dtor(45)));
+
+		if(speed > maxSpeed)
+			speed = maxSpeed;
+
+		double turnSpeed = yawDiff;
+		if(abs(turnSpeed) > maxTurnSpeed)
+			turnSpeed = (turnSpeed/abs(turnSpeed))*maxTurnSpeed;
+
+		pp->SetMotorEnable(true);
+		pp->SetSpeed(speed, turnSpeed);
+	} else {
+		pp->SetSpeed(0, 0);
+		pp->SetMotorEnable(false);
+	}
+}
+
+void Robot::moveTo(const Path& path) {
 	for(unsigned i = 1; i < path.size(); ++i)
 		moveTo(path[i]);
 }
 
-void Robot::moveTo(Location location) {
+void Robot::moveTo(const Location& location) {
 	Location target = getStageLocation(location);
-
-	player_color cyan;
-	cyan.red = 0;
-	cyan.green = 255;
-	cyan.blue = 255;
-	cyan.alpha = 255;
 
 	double biggestSize = getWidth() > getHeight() ? getWidthMeters() : getHeightMeters();
 
@@ -140,7 +227,7 @@ void Robot::moveTo(Location location) {
 		Position currentPosition(pp->GetXPos(), pp->GetYPos(), pp->GetYaw());
 		setPosition(currentPosition);
 
-		drawPoint(target, cyan);
+		drawPoint(target, Color::Cyan);
 
 		player_point_2d points[2];
 		points[0].px = getX();
@@ -182,15 +269,19 @@ void Robot::moveTo(Location location) {
 	pp->SetMotorEnable(false);
 }
 
-double Robot::distanceTo(Location target) const {
+double Robot::distanceTo(const Location& target) const {
 	return getLocation().distanceTo(target);
 }
 
-double Robot::angleTo(Location target) const {
+double Robot::angleTo(const Location& target) const {
 	return getLocation().angleTo(target);
 }
 
-void Robot::drawPoint(Location stageLocation, player_color color) const {
+void Robot::drawPoint(const Position& stagePosition, Color color) const {
+	drawPoint(stagePosition.getLocation(), color);
+}
+
+void Robot::drawPoint(const Location& stageLocation, Color color) const {
 	player_point_2d points[4];
 	player_point_2d point;
 	point.px = stageLocation.getX();
@@ -208,5 +299,11 @@ void Robot::drawPoint(Location stageLocation, player_color color) const {
 	points[3].px = point.px - 0.05;
 	points[3].py = point.py + 0.05;
 
-	gp->DrawPolygon(points, 4, true, color);
+	player_color playerColor;
+	playerColor.red = color.getRed();
+	playerColor.green = color.getGreen();
+	playerColor.blue = color.getBlue();
+	playerColor.alpha = color.getAlpha();
+
+	gp->DrawPolygon(points, 4, true, playerColor);
 }
