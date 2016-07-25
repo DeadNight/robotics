@@ -45,6 +45,14 @@ Location Map::getGridLocation(Location location) const {
 	return Location(round(temp.getX()), round(temp.getY()));
 }
 
+Position Map::getWorldPosition(Position position) const {
+	return Position(getWorldLocation(position), position.getYaw());
+}
+
+Location Map::getWorldLocation(Position position) const {
+	return getWorldLocation(position.getLocation());
+}
+
 Location Map::getWorldLocation(Location location) const {
 	Location temp = location * gridResolution;
 	return Location(round(temp.getX()), round(temp.getY()));

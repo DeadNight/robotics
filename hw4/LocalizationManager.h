@@ -16,15 +16,12 @@
 class LocalizationManager {
 private:
     vector<Particle> particles;
-    Map map;
+    const Map* map;
 public:
     LocalizationManager();
-    LocalizationManager(const Position& start, Map map);
+    LocalizationManager(const Position& start, const Map* map);
 
-    const Map& getMap() const ;
-	void setMap(const Map& map);
-
-	const Position& update(const LaserProxy& lp, const Deltas& deltas);
+	Position update(const LaserProxy& lp, const Deltas& deltas);
 
 	 //getting the value of the average belief of particles
 	 double getMidBelife();

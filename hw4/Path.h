@@ -17,7 +17,6 @@ public:
 	Path() { }
 	Path(std::vector<Location> path);
 
-	std::vector<Location> getPath() const;
 	void setPath(std::vector<Location> path);
 
 	unsigned size() const;

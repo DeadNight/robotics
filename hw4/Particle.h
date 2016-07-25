@@ -24,43 +24,44 @@
 #define RANGE 3
 
 class Particle {
+	const Map* map;
 	Position position;
 	double belief;
 public:
 	Particle() { }
-	Particle(const Map& map, const Position& p, double belief);
+	Particle(const Map* map, const Position& p, double belief);
 
 	double getBelief() const;
 
 	void setBelief(double belief);
 
-	const Position& getPosition() const;
+	Position getPosition() const;
 
 	void setPosition(const Position& position);
 
-	void update(const LaserProxy& lp, const Deltas& deltas, const Map& map);
+	void update(const LaserProxy& lp, const Deltas& deltas);
 
 	//in order to print one particle
-	void printParticle(const Map& map, const char* mapFilePath);
+	void printParticle(const char* mapFilePath);
 	//in order to save particle to image but not only one
-	void printParticle(const Map& map, Image& image);
+	void printParticle(Image& image);
 
 	Path linearPath(const Location& a, const Location& b);
 
 	double helpFunc (double x);
 
-	double probaByLazer(const LaserProxy& lp, const Map& map);
+	double probaByLazer(const LaserProxy& lp);
 
 	double probaByMove(const Deltas& deltas);
 
-	vector<double> random_numbers();
+	Position spawnPosition();
 
 	vector<Particle>::iterator find(vector<Particle>& list, const Particle& p);
 
-	vector<Particle> spawnParticles(int num, const Map& map);
+	vector<Particle> spawnParticles(int num);
 
 	inline bool operator==(const Particle& other) const {
-		return (position.getX() == other.getPosition().getX()) && (position.getY() == other.getPosition().getY()) &&(position.getYaw() == other.getPosition().getYaw());
+		return position == other.position;
 	}
 
 	inline bool operator!=(const Particle& other) const { return !(*this == other); }

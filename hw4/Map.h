@@ -38,6 +38,9 @@ public:
 	Position getGridPosition(Position position) const;
 	Location getGridLocation(Location location) const;
 
+	Position getWorldPosition(Position position) const;
+
+	Location getWorldLocation(Position position) const;
 	Location getWorldLocation(Location location) const;
 
 	void load(const char* mapFilePath, float mapResolution);

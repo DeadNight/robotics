@@ -146,7 +146,14 @@ Deltas Robot::read() {
 		Deltas deltas(100 * (pp->GetXPos() - lastPosition->getX())
 							, 100 * (pp->GetYPos() - lastPosition->getY())
 							, pp->GetYaw() - lastPosition->getYaw());
-		lastPosition->set(pp->GetXPos(), pp->GetYPos(), pp->GetYaw());
+
+		if(deltas.getX() > 100 || deltas.getY() > 100) {
+			delete lastPosition;
+			lastPosition = new Position(pp->GetXPos(), pp->GetYPos(), pp->GetYaw());
+			return Deltas(0, 0, 0);
+		}
+
+
 		return deltas;
 	}
 }

@@ -33,6 +33,12 @@ public:
 
     void set(double x, double y, double yaw);
 
+    inline bool operator==(const Position& other) const {
+		return location == other.location && yaw == other.yaw;
+	}
+
+	inline bool operator!=(const Position& other) const { return !(*this == other); }
+
     inline Position& operator+=(const double scalar) {
 		location += scalar;
 		return *this;

@@ -29,6 +29,12 @@ public:
     double distanceTo(Location target) const;
     double angleTo(Location target) const;
 
+    inline bool operator==(const Location& other) const {
+		return x == other.x && y == other.y;
+	}
+
+	inline bool operator!=(const Location& other) const { return !(*this == other); }
+
     inline Location& operator+=(const double scalar) {
     	x += scalar;
     	y += scalar;

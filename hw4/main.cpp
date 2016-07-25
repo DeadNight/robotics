@@ -93,7 +93,7 @@ int main() {
 	cout << "done" << endl;
 
 	cout << "creating localization manager... ";
-	LocalizationManager localizationManager(start, map);
+	LocalizationManager localizationManager(start, &map);
 	cout << "done" << endl;
 
 	cout << "connecting to robot... ";

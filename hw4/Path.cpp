@@ -11,10 +11,6 @@ Path::Path(std::vector<Location> path) {
 	setPath(path);
 }
 
-std::vector<Location> Path::getPath() const {
-	return path;
-}
-
 void Path::setPath(std::vector<Location> path) {
 	this->path = path;
 }
