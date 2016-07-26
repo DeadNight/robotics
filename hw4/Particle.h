@@ -19,9 +19,12 @@
 #include "Robot.h"
 #include "MapSearchable.h"
 
-#define PI 3.14159265
-#define NORMAL 1.2
-#define RANGE 3
+#define NORMAL 1.1
+#define RANGE 1
+#define ROTATION 10
+#define THROW_THRESHOLD 0.5
+#define SPAWN_THRESHOLD 0.75
+#define SPAWN_THRESHOLD2 0.9
 
 class Particle {
 	const Map* map;

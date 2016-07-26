@@ -34,9 +34,11 @@ void Particle::update(const LaserProxy& lp, const Deltas& deltas) {
 		position.getY() + deltas.getY() / map->getGridResolution(),
 		position.getYaw() + deltas.getYaw()
 	);
-	double newBelief = NORMAL * belief * probaByMove(deltas) * probaByLazer(lp);
+	double newBelief = NORMAL * belief * (0.5*probaByMove(deltas) + 0.5*probaByLazer(lp));
+	if(newBelief > 1)
+		newBelief = 1;
 	if(!isnan(newBelief))
-		belief = newBelief;
+		belief = 0.3*belief + 0.7*newBelief;
 }
 
 void Particle::printParticle(const char* mapFilePath){
@@ -59,8 +61,8 @@ double Particle::hitTest(double distance, double angle, double maxDistance) {
 	double x, y, dx, dy, xe, ye, d;
 
 	Location obs(
-		position.getX() + distance*cos(angle) / map->getGridResolution(),
-		position.getY() - distance*sin(angle) / map->getGridResolution()
+		position.getX() + distance*cos(angle),
+		position.getY() - distance*sin(angle)
 	);
 
 	dx = obs.getX() - position.getX();
@@ -73,21 +75,21 @@ double Particle::hitTest(double distance, double angle, double maxDistance) {
 
 	if(fabs(dy) <= fabs(dx)) {
 		dy = dy / fabs(dx);
-		dx = 1;
+		dx = dx / fabs(dx);
 	} else {
 		dx = dx / fabs(dy);
-		dx = 1;
+		dx = dy / fabs(dy);
 	}
 
-	while((fabs(dy) <= fabs(dx) && ((dx >= 0 && x < xe) || (dx < 0 && x > xe)))
-			|| (fabs(dy) > fabs(dx) && ((dy >= 0 && y < ye) || (dy < 0 && y > ye)))) {
+	while((fabs(dx) == 1 && ((dx >= 0 && x < xe) || (dx < 0 && x > xe)))
+			|| (fabs(dy) == 1 && ((dy >= 0 && y < ye) || (dy < 0 && y > ye)))) {
 		x += dx;
 		y += dy;
 
 		d = sqrt(pow(position.getX() - x, 2) + pow(position.getY() - y, 2));
-		if((*map)((int)x, (int)y) == 1) {
+		if((*map)(round(x), round(y)) == 1) {
 			return distance < maxDistance ? d : maxDistance;
-		} else if(d >= distance + 1) {
+		} else if(d >= distance + 2) {
 			return distance < maxDistance ? d : INT_MAX;
 		}
 	}
@@ -95,17 +97,12 @@ double Particle::hitTest(double distance, double angle, double maxDistance) {
 	 return sqrt(pow(position.getX() - x, 2) + pow(position.getY() - y, 2));
 }
 
-//Function that returns values between 0 to 1
-//The higher the value of X, the lower the value that the function returns
-double Particle::helpFunc (double x){
-	return 1 - fabs(atan(x) / (PI/2));
-}
 double Particle::probaByLazer(const LaserProxy& lp) {
 	double hits = 0;
-	double dMax = 100 * lp.GetMaxRange();
+	double dMax = 100 * lp.GetMaxRange() / map->getGridResolution();
 
 	for(uint i = 0; i < lp.GetCount(); ++i) {
-		double d = 100 * lp[i];
+		double d = 100 * lp[i] / map->getGridResolution();
 		double angle = dtor(position.getYaw()) + lp.GetBearing(i);
 
 		double hit = hitTest(d, angle, dMax);
@@ -113,7 +110,7 @@ double Particle::probaByLazer(const LaserProxy& lp) {
 		if(fabs(hit - d) < 1) {
 			++hits;
 		} else if(fabs(hit - d) < 2) {
-			hits += 0.9;
+			hits += 0.5;
 		}
 	}
 
@@ -121,16 +118,28 @@ double Particle::probaByLazer(const LaserProxy& lp) {
 }
 
 double Particle::probaByMove(const Deltas& deltas) {
-	double disntance = sqrt(pow(deltas.getX(), 2) + pow(deltas.getY(), 2));
-	return helpFunc(disntance + fabs(deltas.getYaw()));
+	double disntanceFactor, rotationFactor;
 
+	double disntance = sqrt(pow(deltas.getX(), 2) + pow(deltas.getY(), 2));
+	if(disntance > 1000)
+		disntanceFactor = 0;
+	else
+		disntanceFactor = (1000 - disntance) / 1000;
+
+	double rotation = fabs(deltas.getYaw());
+	if(rotation > 90)
+		rotationFactor = 0;
+	else
+		rotationFactor = (90 - rotation) / 90;
+
+	return disntanceFactor * rotationFactor;
  }
 
 Position Particle::spawnPosition() {
 	return Position(
 			position.getX() + (rand() % (2*RANGE + 1)) - RANGE,
 			position.getY() + (rand() % (2*RANGE + 1)) - RANGE,
-			position.getYaw() + rand() % 90 - 45
+			position.getYaw() + rand() % (2*ROTATION + 1) - ROTATION
 	);
 }
 

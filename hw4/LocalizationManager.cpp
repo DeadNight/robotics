@@ -19,50 +19,47 @@ Position LocalizationManager::update(const LaserProxy& lp, const Deltas& deltas)
 	vector<Particle> newParticles;
 	vector<Particle>::iterator it = particles.begin();
 
-	double max = INT_MIN, min = INT_MAX;
+	double max = INT_MIN;
 
 	for(vector<Particle>::iterator it = particles.begin(); it != particles.end(); ++it) {
-		Particle* p = &*it;
-		p->update(lp, deltas);
+		it->update(lp, deltas);
 
-		if(p->getBelief() > max) {
-			max = p->getBelief();
-			bestParticle = p;
-		}
-
-		if(p->getBelief() < min) {
-			min = p->getBelief();
+		if(it->getBelief() > max) {
+			max = it->getBelief();
+			bestParticle = &*it;
 		}
 	}
 
-	double middle = (min + max)/2;
-
-	std::cout << "#particles: " << particles.size() << " middle: " << middle << std::endl;
+	std::cout << "#particles: " << particles.size() << " max: " << max << std::endl;
 	if(!particles.size())
 		throw "no particles";
 
 	while(it != particles.end()) {
 		Particle& p = *it;
+		int spawn = 0;
 
-		if(p.getBelief() <= middle / 2) {
+		if(p.getBelief() <= THROW_THRESHOLD) {
+			if(p.getBelief() == max) {
+				p.setBelief(THROW_THRESHOLD);
+				spawn = 5;
+			}
+
 			//std::cout << "*** throwing " << p.getPosition() << " (" << p.getBelief() << ")" << std::endl;
 			it = particles.erase(it);
 		} else {
-			double multiplier = 1;
-			if(p.getBelief() >= middle && p.getBelief() < middle * 3/2) {
-				//std::cout << "*** spawning 2 " << p.getPosition() << " (" << p.getBelief() << ")" << std::endl;
-				multiplier = 2;
-			} else if(p.getBelief() >= middle * 3/2) {
-				//std::cout << "*** spawning 4 " << p.getPosition() << " (" << p.getBelief() << ")" << std::endl;
-				multiplier = 4;
-			}
-
-			if(multiplier > 1) {
-				vector<Particle> spawnedParticles = p.spawnParticles(multiplier);
-				concatVector(newParticles, spawnedParticles);
+			if(p.getBelief() >= SPAWN_THRESHOLD) {
+				spawn = 2;
+			} else if(p.getBelief() >= SPAWN_THRESHOLD2) {
+				spawn = 4;
 			}
 
 			++it;
+		}
+
+		if(spawn > 0) {
+			//std::cout << "*** spawning " << spawn << " " << p.getPosition() << " (" << p.getBelief() << ")" << std::endl;
+			vector<Particle> spawnedParticles = p.spawnParticles(spawn);
+			concatVector(newParticles, spawnedParticles);
 		}
 	}
 
