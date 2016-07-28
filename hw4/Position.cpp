@@ -43,12 +43,15 @@ double Position::getYaw() const {
 }
 
 void Position::setYaw(double yaw) {
-	if(yaw > 180)
-		while(yaw > 180) yaw -= 360;
-	else if(yaw < -180)
-		while(yaw < -180) yaw += 360;
+	while(yaw > 180) yaw -= 360;
+	while(yaw < -180) yaw += 360;
 
 	this->yaw = yaw;
+}
+
+void Position::set(const Position& pos) {
+	setLocation(pos.location);
+	setYaw(pos.yaw);
 }
 
 void Position::set(double x, double y, double yaw) {

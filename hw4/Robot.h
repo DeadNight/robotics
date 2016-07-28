@@ -65,6 +65,9 @@ public:
     Location getStageLocation() const;
     Location getStageLocation(const Location& location) const;
 
+    Position getWorldPosition() const;
+    Location getWorldLocation(const Location& location) const;
+
     double getX() const;
     double getY() const;
     double getYaw() const;
@@ -75,7 +78,8 @@ public:
 
     bool isAt(const Location& l) const;
 
-    Deltas read();
+    void read();
+    Deltas getDeltas();
 
     void move();
 
@@ -87,6 +91,8 @@ public:
 
     void drawPoint(const Position& stagePosition, Color color) const;
     void drawPoint(const Location& stageLocation, Color color) const;
+
+    void drawPosition(const Position& position, Color color) const;
 };
 
 #endif /* ROBOT_H_ */

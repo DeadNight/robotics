@@ -31,6 +31,7 @@ public:
     double getYaw() const;
     void setYaw(double yaw);
 
+    void set(const Position& pos);
     void set(double x, double y, double yaw);
 
     inline bool operator==(const Position& other) const {

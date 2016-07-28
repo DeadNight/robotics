@@ -38,14 +38,14 @@ double Location::angleTo(Location target) const {
 	double angle;
 	if(target.x == x) {
 		if(target.x > y)
-			angle = PlayerCc::dtor(90);
+			angle = 90;
 		else
-			angle = PlayerCc::dtor(-90);
+			angle = -90;
 	} else {
 		double m = (target.y - y) / (target.x - x);
-		angle = atan(m);
+		angle = PlayerCc::rtod(atan(m));
 		if(target.x < x)
-			angle += PlayerCc::dtor(180);
+			angle += 180;
 	}
 	return angle;
 }

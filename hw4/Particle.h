@@ -19,11 +19,11 @@
 #include "Robot.h"
 #include "MapSearchable.h"
 
-#define NORMAL 1.1
+#define NORMAL 1.3
 #define RANGE 1
 #define ROTATION 10
 #define THROW_THRESHOLD 0.5
-#define SPAWN_THRESHOLD 0.75
+#define SPAWN_THRESHOLD 0.7
 #define SPAWN_THRESHOLD2 0.9
 
 class Particle {
@@ -35,19 +35,14 @@ public:
 	Particle(const Map* map, const Position& p, double belief);
 
 	double getBelief() const;
-
 	void setBelief(double belief);
 
 	Position getPosition() const;
-
 	void setPosition(const Position& position);
 
-	void update(const LaserProxy& lp, const Deltas& deltas);
+	void set(const Particle& p);
 
-	//in order to print one particle
-	void printParticle(const char* mapFilePath);
-	//in order to save particle to image but not only one
-	void printParticle(Image& image);
+	void update(const LaserProxy& lp, const Deltas& deltas);
 
 	double hitTest(double distance, double angle, double maxDistance);
 
@@ -62,6 +57,9 @@ public:
 	vector<Particle>::iterator find(vector<Particle>& list, const Particle& p);
 
 	vector<Particle> spawnParticles(int num);
+
+	void save(const char* mapFilePath) const;
+	void save(Image& image) const;
 
 	inline bool operator==(const Particle& other) const {
 		return position == other.position;

@@ -18,17 +18,16 @@ private:
     vector<Particle> particles;
     const Map* map;
 public:
-    LocalizationManager();
+    LocalizationManager() { }
     LocalizationManager(const Position& start, const Map* map);
 
 	Position update(const LaserProxy& lp, const Deltas& deltas);
 
-	 //getting the value of the average belief of particles
-	 double getMidBelife();
+	 const Particle& getBestParticle() const;
 
 	 void concatVector(vector<Particle>& lhs, vector<Particle>& rhs);
 
-	 void printParticels(const char* mapFilePath);
+	 void save(const char* mapFilePath);
 
 };
 

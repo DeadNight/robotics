@@ -25,36 +25,29 @@ Position Particle::getPosition() const {
 }
 
 void Particle::setPosition(const Position& position) {
-	this->position = map->getGridPosition(position);
+	this->position.set(map->getGridPosition(position));
+}
+
+void Particle::set(const Particle& p) {
+	position.set(p.position);;
+	belief = p.belief;
 }
 
 void Particle::update(const LaserProxy& lp, const Deltas& deltas) {
 	position.set(
-		position.getX() + deltas.getX() / map->getGridResolution(),
-		position.getY() + deltas.getY() / map->getGridResolution(),
+		position.getX() + deltas.getX()/map->getGridResolution(),
+		position.getY() - deltas.getY()/map->getGridResolution(),
 		position.getYaw() + deltas.getYaw()
 	);
-	double newBelief = NORMAL * belief * (0.5*probaByMove(deltas) + 0.5*probaByLazer(lp));
+
+	if(deltas.getX() == 0 && deltas.getY() == 0 && deltas.getYaw() == 0)
+		return;
+
+	double newBelief = NORMAL * belief * probaByMove(deltas) * probaByLazer(lp);
 	if(newBelief > 1)
 		newBelief = 1;
 	if(!isnan(newBelief))
-		belief = 0.3*belief + 0.7*newBelief;
-}
-
-void Particle::printParticle(const char* mapFilePath){
-	Image image = map->toImage();
-	Location l;
-	l.setX(position.getLocation().getX() / map->getMapResolution());
-	l.setY(position.getLocation().getY() / map->getMapResolution());
-	image.setAround(l, Color::Red);
-	image.save(mapFilePath);
-}
-
-void Particle::printParticle(Image& image){
-	Location l;
-	l.setX(position.getLocation().getX() / map->getMapResolution());
-	l.setY(position.getLocation().getY() / map->getMapResolution());
-	image.setAround(l, Color::Red);
+		belief = newBelief;
 }
 
 double Particle::hitTest(double distance, double angle, double maxDistance) {
@@ -89,7 +82,7 @@ double Particle::hitTest(double distance, double angle, double maxDistance) {
 		d = sqrt(pow(position.getX() - x, 2) + pow(position.getY() - y, 2));
 		if((*map)(round(x), round(y)) == 1) {
 			return distance < maxDistance ? d : maxDistance;
-		} else if(d >= distance + 2) {
+		} else if(d >= distance + 3) {
 			return distance < maxDistance ? d : INT_MAX;
 		}
 	}
@@ -103,13 +96,15 @@ double Particle::probaByLazer(const LaserProxy& lp) {
 
 	for(uint i = 0; i < lp.GetCount(); ++i) {
 		double d = 100 * lp[i] / map->getGridResolution();
-		double angle = dtor(position.getYaw()) + lp.GetBearing(i);
+		double angle = position.getYaw() + lp.GetBearing(i);
 
 		double hit = hitTest(d, angle, dMax);
 
 		if(fabs(hit - d) < 1) {
 			++hits;
 		} else if(fabs(hit - d) < 2) {
+			hits += 0.9;
+		} else if(fabs(hit - d) < 3) {
 			hits += 0.5;
 		}
 	}
@@ -159,7 +154,7 @@ vector <Particle> Particle::spawnParticles(int num) {
 		Position pos = spawnPosition();
 
 		if((*map)(pos.getLocation()) != 1) {
-			Particle newParticle = Particle(map, map->getWorldPosition(pos), belief);
+			Particle newParticle = Particle(map, map->getWorldPosition(pos), belief - 0.00001);
 
 			if(particles.end() == find(particles, newParticle))
 				particles.push_back(newParticle);
@@ -167,4 +162,27 @@ vector <Particle> Particle::spawnParticles(int num) {
 	}
 
 	return particles;
+}
+
+void Particle::save(const char* mapFilePath) const {
+	Image image = map->toImage();
+	double resolutionRatio = (double)map->getGridResolution() / map->getMapResolution();
+	Position imagePosition = position * resolutionRatio;
+
+	image.setAround(imagePosition.getX(), imagePosition.getY(), 4, Color::Magenta);
+	image.save(mapFilePath);
+}
+
+void Particle::save(Image& image) const {
+	double resolutionRatio = (double)map->getGridResolution() / map->getMapResolution();
+	Position imagePosition = position * resolutionRatio;
+
+	Color color = Color::Red;
+	if(belief > SPAWN_THRESHOLD2) {
+		color = Color::Green;
+	} else if(belief > SPAWN_THRESHOLD) {
+		color = Color::Yellow;
+	}
+
+	image.setAround(imagePosition.getX(), imagePosition.getY(), 2, color);
 }
