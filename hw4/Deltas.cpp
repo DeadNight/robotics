@@ -20,3 +20,13 @@ double Deltas::getY() const {
 double Deltas::getYaw() const {
 	return yaw;
 }
+
+void Deltas::set(double x, double y, double yaw) {
+	this->x = x;
+	this->y = y;
+	this->yaw = yaw;
+}
+
+std::ostream& operator<<(std::ostream& out, const Deltas& deltas) {
+	return out << deltas.x << " " << deltas.y << " " << deltas.yaw;
+}

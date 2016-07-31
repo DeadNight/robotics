@@ -23,6 +23,8 @@ public:
     double getHeight() const { return height; }
     void setHeight(double height) { this->height = height; }
 
+    void set(double width, double height) { this->width = width; this->height = height; }
+
     friend std::ostream& operator<<(std::ostream& out, const Size& size);
     friend std::istream& operator>>(std::istream& in, Size& size);
 };

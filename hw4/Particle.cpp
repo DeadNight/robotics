@@ -44,10 +44,9 @@ void Particle::update(const LaserProxy& lp, const Deltas& deltas) {
 		return;
 
 	double newBelief = NORMAL * belief * probaByMove(deltas) * probaByLazer(lp);
-	if(newBelief > 1)
-		newBelief = 1;
+
 	if(!isnan(newBelief))
-		belief = newBelief;
+		belief = newBelief > 1 ? 1 : newBelief;
 }
 
 double Particle::hitTest(double distance, double angle, double maxDistance) {
@@ -116,16 +115,16 @@ double Particle::probaByMove(const Deltas& deltas) {
 	double disntanceFactor, rotationFactor;
 
 	double disntance = sqrt(pow(deltas.getX(), 2) + pow(deltas.getY(), 2));
-	if(disntance > 1000)
-		disntanceFactor = 0;
+	if(disntance > 100)
+		disntanceFactor = 0.5;
 	else
-		disntanceFactor = (1000 - disntance) / 1000;
+		disntanceFactor = 0.5 + 0.5*(100 - disntance)/100;
 
 	double rotation = fabs(deltas.getYaw());
-	if(rotation > 90)
-		rotationFactor = 0;
+	if(rotation > 180)
+		rotationFactor = 0.5;
 	else
-		rotationFactor = (90 - rotation) / 90;
+		rotationFactor = 0.5 + 0.5*(180 - rotation)/180;
 
 	return disntanceFactor * rotationFactor;
  }
@@ -154,7 +153,7 @@ vector <Particle> Particle::spawnParticles(int num) {
 		Position pos = spawnPosition();
 
 		if((*map)(pos.getLocation()) != 1) {
-			Particle newParticle = Particle(map, map->getWorldPosition(pos), belief - 0.00001);
+			Particle newParticle = Particle(map, map->getWorldPosition(pos), belief);
 
 			if(particles.end() == find(particles, newParticle))
 				particles.push_back(newParticle);

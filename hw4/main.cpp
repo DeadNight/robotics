@@ -7,6 +7,9 @@
  *      Author: Shay Kremer 201588126
  */
 
+#define ROBOT_IP "10.10.245.63"
+//#define ROBOT_IP "localhost"
+
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -97,38 +100,49 @@ int main() {
 //	cout << "done" << endl;
 
 	cout << "connecting to robot... ";
-	Robot robot("localhost", 6665, config.getRobotSize(), start);
+	Robot robot(ROBOT_IP, 6665, config.getRobotSize(), start);
 //	cout << "setting robot path... ";
 	robot.setPath(path);
 
 //	cout << "done" << endl
 //		 << "moving robot to goal... " << endl;
 
+	robot.enableMotor();
+	PlayerCc::LaserProxy lp = robot.getLaserProxy();
+
 	int i = 0;
 	while(true) {
+		i++;
+
 		//cout << '\t' << "reading robot sensors... ";
 		robot.read();
 
-		if(i % 5 == 0) {
-			//cout << "getting deltas... " << flush;
-			Deltas deltas = robot.getDeltas();
+		//cout << deltas << endl;
 
-			//cout << "done" << endl
-			//	 << '\t' << "updating localization manager... " << flush;
-			const Position& approxPosition = localizationManager.update(robot.getLaserProxy(), deltas);
+		//cout << "done" << endl
+		//	 << '\t' << "updating localization manager... " << flush;
+		const Position& approxPosition = localizationManager.update(lp, robot.getDeltas());
 
-			//cout << "done" << endl
-			//	 << '\t' << "setting robot position (" << approxPosition << ")... " << flush;
-			robot.setPosition(approxPosition);
-			//cout << "done" << endl;
+		//cout << approxPosition << endl;
+
+		//cout << "done" << endl
+		//	 << '\t' << "setting robot position (" << approxPosition << ")... " << flush;
+		robot.setPosition(approxPosition);
+		//cout << "done" << endl;
+
+		if(robot.isAt(path[path.size() - 1])) {
+			robot.disableMotor();
+			break;
 		}
 
-		if(robot.isAt(path[path.size() - 1]))
-			break;
-
-		//cout<< '\t' << "moving robot... ";
-		robot.move();
-		//cout << "done" << endl;
+		if(robot.hasObstacle()) {
+			//cout << '\t' << "avoiding... " << endl;
+			robot.avoidObstacle();
+		} else {
+			//cout << '\t' << "moving... " << endl;
+			robot.move();
+			//cout << "done" << endl;
+		}
 
 		if(i % 20 == 0) {
 			cout << " robot is at " << robot.getPosition().getLocation()
@@ -141,8 +155,6 @@ int main() {
 			sprintf(filename, "images/%d_particles.png", (int)(i/20));
 			localizationManager.save(filename);
 		}
-
-		i++;
 	}
 
 	cout << "robot finished at " << robot.getPosition().getLocation() << endl;

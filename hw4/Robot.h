@@ -21,22 +21,22 @@ using namespace std;
 using namespace PlayerCc;
 
 class Robot {
-	static double minMargin;
-	static double maxMargin;
+	static double obstacleMargin;
 	static double maxSpeed;
 	static double maxTurnSpeed;
-
-	PlayerClient *pc;
-	Position2dProxy *pp;
-	LaserProxy *lp;
-	Graphics2dProxy *gp;
 
 	Size size;
 	Position position;
 	Path const* path;
 	unsigned nextPathIndex;
 
+	Deltas deltas;
 	Position* lastPosition;
+
+	PlayerClient *pc;
+	Position2dProxy *pp;
+	LaserProxy *lp;
+	Graphics2dProxy *gp;
 public:
 	Robot(const char* host, unsigned port, Size size, Position position);
 	virtual ~Robot();
@@ -79,12 +79,18 @@ public:
     bool isAt(const Location& l) const;
 
     void read();
-    Deltas getDeltas();
+    const Deltas& getDeltas() const;
+
+    void enableMotor();
+    void disableMotor();
 
     void move();
 
     void moveTo(const Path& path);
     void moveTo(const Location& location);
+
+    bool hasObstacle() const;
+	void avoidObstacle();
 
     double distanceTo(const Location& stageLocation) const;
     double angleTo(const Location& target) const;

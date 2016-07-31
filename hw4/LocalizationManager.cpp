@@ -16,7 +16,9 @@ Position LocalizationManager::update(const LaserProxy& lp, const Deltas& deltas)
 	const Particle* bestParticle;
 	vector<Particle> newParticles;
 	vector<Particle>::iterator it = particles.begin();
-	double max = INT_MIN;
+	double min = INT_MAX, max = INT_MIN, mid;
+
+	//std::cout << particles.size() << std::endl;
 
 	for(vector<Particle>::iterator it = particles.begin(); it != particles.end(); ++it) {
 		it->update(lp, deltas);
@@ -25,7 +27,16 @@ Position LocalizationManager::update(const LaserProxy& lp, const Deltas& deltas)
 			max = it->getBelief();
 			bestParticle = &*it;
 		}
+
+		if(it->getBelief() < min) {
+			min = it->getBelief();
+		}
 	}
+
+	if(deltas.getX() == 0 && deltas.getY() == 0 && deltas.getYaw() == 0)
+		return bestParticle->getPosition();
+
+	mid = (min + max) / 2;
 
 	//std::cout << "#particles: " << particles.size() << " max: " << max << std::endl;
 	if(!particles.size())
@@ -36,7 +47,9 @@ Position LocalizationManager::update(const LaserProxy& lp, const Deltas& deltas)
 		int spawn = 0;
 
 		if(p.getBelief() == max) {
-			p.setBelief(1);
+			p.setBelief(SPAWN_THRESHOLD);
+		} else if(particles.size() > 10 && p.getBelief() <= mid) {
+			p.setBelief(THROW_THRESHOLD);
 		}
 
 		if(p.getBelief() <= THROW_THRESHOLD) {

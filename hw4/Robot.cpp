@@ -7,24 +7,30 @@
 
 #include "Robot.h"
 
-double Robot::minMargin = 1.5;
-double Robot::maxMargin = 2.75;
+double Robot::obstacleMargin = 1.5;
 double Robot::maxSpeed = 0.7;
 double Robot::maxTurnSpeed = 0.5;
 
 Robot::Robot(const char* host, unsigned port, Size size, Position position)
-				: size(size), lastPosition(NULL) {
+				: lastPosition(NULL), gp(NULL) {
 	pc = new PlayerClient(host,port);
 	pp = new Position2dProxy(pc);
 	lp = new LaserProxy(pc);
-	gp = new Graphics2dProxy(pc);
+
+	try {
+		gp = new Graphics2dProxy(pc);
+	} catch(...) {
+		// ok, we're probably connected to the robot
+	}
 
 	setPosition(position);
+	setSize(size);
 	pp->SetOdometry(this->position.getX(), this->position.getY(), dtor(this->position.getYaw()));
 }
 
 Robot::~Robot() {
-	delete gp;
+	if(gp != NULL)
+		delete gp;
 	delete lp;
 	delete pp;
 	delete pc;
@@ -33,11 +39,11 @@ Robot::~Robot() {
 }
 
 Size Robot::getSize() const {
-	return size;
+	return Size(size.getWidth()*100, size.getHeight()*100);
 }
 
 void Robot::setSize(Size size) {
-	this->size = size;
+	this->size.set(size.getWidth()/100, size.getHeight()/100);
 }
 
 double Robot::getWidth() const {
@@ -71,7 +77,7 @@ Position Robot::getPosition() const {
 void Robot::setPosition(Position position) {
 	this->position = getStagePosition(position);
 
-	//pp->SetOdometry(this->position.getX(), this->position.getY(), dtor(this->position.getYaw()));
+	//pp->SetOdometry(getX(), getY(), dtor(getYaw()));
 
 	drawPosition(this->position, Color::Magenta);
 }
@@ -156,26 +162,33 @@ bool Robot::isAt(const Location& l) const {
 
 void Robot::read() {
 	pc->Read();
-	position.set(pp->GetXPos(), pp->GetYPos(), rtod(pp->GetYaw()));
-}
 
-Deltas Robot::getDeltas() {
 	if(lastPosition == NULL) {
 		lastPosition = new Position(position);
-		return Deltas(0, 0, 0);
 	} else {
-		Deltas deltas(100 * (pp->GetXPos() - lastPosition->getX())
-							, 100 * (pp->GetYPos() - lastPosition->getY())
-							, rtod(pp->GetYaw()) - lastPosition->getYaw());
+		deltas.set(100 * (pp->GetXPos() - lastPosition->getX()),
+				   100 * (pp->GetYPos() - lastPosition->getY()),
+				   rtod(pp->GetYaw()) - lastPosition->getYaw());
 
 		lastPosition->set(pp->GetXPos(), pp->GetYPos(), rtod(pp->GetYaw()));
 
-		if(deltas.getX() > 200 || deltas.getY() > 200) {
-			return Deltas(0, 0, 0);
-		}
-
-		return deltas;
+		position.set(position.getX() + deltas.getX()/100,
+					 position.getY() - deltas.getY()/100,
+					 position.getYaw() + deltas.getYaw());
 	}
+}
+
+const Deltas& Robot::getDeltas() const {
+	return deltas;
+}
+
+void Robot::enableMotor() {
+	pp->SetSpeed(0, 0);
+	pp->SetMotorEnable(true);
+}
+
+void Robot::disableMotor() {
+	pp->SetMotorEnable(false);
 }
 
 void Robot::move() {
@@ -186,9 +199,10 @@ void Robot::move() {
 	if(nextPathIndex < path->size()) {
 		Location target = getStageLocation((*path)[nextPathIndex]);
 
-		gp->Clear();
+		if(gp != NULL)
+			gp->Clear();
 
-		drawPosition(position, Color::Magenta);
+		drawPosition(getStagePosition(position), Color::Magenta);
 		drawPoint(target, Color::Cyan);
 
 		player_point_2d points[2];
@@ -197,8 +211,10 @@ void Robot::move() {
 		points[1].px = target.getX();
 		points[1].py = target.getY();
 
-		gp->Color(255, 0, 0, 255);
-		gp->DrawPolyline(points, 2);
+		if(gp != NULL) {
+			gp->Color(255, 0, 0, 255);
+			gp->DrawPolyline(points, 2);
+		}
 
 		double yaw = getYaw();
 		while(yaw > 180) yaw -= 360;
@@ -227,7 +243,6 @@ void Robot::move() {
 		if(abs(turnSpeed) > maxTurnSpeed)
 			turnSpeed = (turnSpeed/abs(turnSpeed))*maxTurnSpeed;
 
-		pp->SetMotorEnable(true);
 		pp->SetSpeed(speed, turnSpeed);
 	} else {
 		pp->SetSpeed(0, 0);
@@ -250,7 +265,8 @@ void Robot::moveTo(const Location& location) {
 	double d;
 	while((d = distanceTo(target)) > biggestSize/2) {
 		pc->Read();
-		gp->Clear();
+		if(gp != NULL)
+			gp->Clear();
 
 		Position currentPosition(pp->GetXPos(), pp->GetYPos(), pp->GetYaw());
 		setPosition(currentPosition);
@@ -263,8 +279,10 @@ void Robot::moveTo(const Location& location) {
 		points[1].px = target.getX();
 		points[1].py = target.getY();
 
-		gp->Color(255, 0, 0, 255);
-		gp->DrawPolyline(points, 2);
+		if(gp != NULL) {
+			gp->Color(255, 0, 0, 255);
+			gp->DrawPolyline(points, 2);
+		}
 
 		double yaw = getYaw();
 		while(yaw > 180) yaw -= 360;
@@ -297,6 +315,76 @@ void Robot::moveTo(const Location& location) {
 	}
 	pp->SetSpeed(0, 0);
 	pp->SetMotorEnable(false);
+}
+
+bool Robot::hasObstacle() const {
+	double maxAngle = atan(size.getWidth()/size.getHeight());
+	double angleStep = 2*lp->GetMaxAngle()/lp->GetCount();
+	int minIndex = (lp->GetMaxAngle() - maxAngle) / angleStep;
+	for(unsigned i = minIndex; i < lp->GetCount() - minIndex; ++i) {
+		double d = (*lp)[i];
+		double angle = lp->GetBearing(i);
+
+		if(abs(d*cos(angle)) < obstacleMargin*size.getHeight() && abs(d*sin(angle)) < obstacleMargin*size.getWidth()) {
+			return true;
+		}
+	}
+	return false;
+}
+
+void Robot::avoidObstacle() {
+	double turnDirection;
+
+	if(deltas.getYaw() == 0) {
+		double weight = 0, maxWeight = 0;
+		int mid = lp->GetCount()/2;
+
+		if(gp != NULL)
+			gp->Clear();
+
+		for(unsigned i = 0; i < lp->GetCount(); ++i) {
+			if(gp != NULL) {
+				double d = (*lp)[i];
+				double angle = lp->GetBearing(i);
+
+				if(abs(d*cos(angle)) < obstacleMargin*size.getHeight() && abs(d*sin(angle)) < obstacleMargin*size.getWidth()) {
+					player_point_2d points[2];
+					points[0].px = pp->GetXPos();
+					points[0].py = pp->GetYPos();
+
+					points[1].px = pp->GetXPos() + d*cos(pp->GetYaw() + angle);
+					points[1].py = pp->GetYPos() + d*sin(pp->GetYaw() + angle);
+
+					gp->Color(255, 0, 0, 255);
+					gp->DrawPolyline(points, 2);
+				}
+			}
+
+			if((*lp)[mid - i] >= lp->GetMaxRange()) {
+				--maxWeight;
+			}
+			if((*lp)[mid + i] >= lp->GetMaxRange()) {
+				++maxWeight;
+			}
+			weight -= (*lp)[mid - i];
+			weight += (*lp)[mid + i];
+		}
+
+
+		if(maxWeight > 0) {
+			turnDirection = 1;
+		} else if(maxWeight < 0) {
+			turnDirection = -1;
+		} else if(weight > 0) {
+			turnDirection = 1;
+		} else {
+			turnDirection = -1;
+		}
+	} else {
+		turnDirection = deltas.getYaw()/fabs(deltas.getYaw());
+	}
+
+	pp->SetSpeed(0, turnDirection*maxTurnSpeed);
 }
 
 double Robot::distanceTo(const Location& target) const {
@@ -335,8 +423,10 @@ void Robot::drawPoint(const Location& stageLocation, Color color) const {
 	playerColor.blue = color.getBlue();
 	playerColor.alpha = color.getAlpha();
 
-	gp->Color(playerColor);
-	gp->DrawPolygon(points, 4, true, playerColor);
+	if(gp != NULL) {
+		gp->Color(playerColor);
+		gp->DrawPolygon(points, 4, true, playerColor);
+	}
 }
 
 void Robot::drawPosition(const Position& position, Color color) const {
@@ -353,8 +443,6 @@ void Robot::drawPosition(const Position& position, Color color) const {
 	playerColor.blue = color.getBlue();
 	playerColor.alpha = color.getAlpha();
 
-	gp->Color(playerColor);
-
 	points[0].px = point.px + 0.1*cos(angle - dtor(180));
 	points[0].py = point.py + 0.1*sin(angle - dtor(180));
 
@@ -370,6 +458,8 @@ void Robot::drawPosition(const Position& position, Color color) const {
 	points[4].px = point.px;
 	points[4].py = point.py;
 
-	gp->DrawPolygon(points, 5, true, playerColor);
-
+	if(gp != NULL) {
+		gp->Color(playerColor);
+		gp->DrawPolygon(points, 5, true, playerColor);
+	}
 }

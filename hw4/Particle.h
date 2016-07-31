@@ -19,11 +19,11 @@
 #include "Robot.h"
 #include "MapSearchable.h"
 
-#define NORMAL 1.3
+#define NORMAL 1.1
 #define RANGE 1
-#define ROTATION 10
-#define THROW_THRESHOLD 0.5
-#define SPAWN_THRESHOLD 0.7
+#define ROTATION 5
+#define THROW_THRESHOLD 0.7
+#define SPAWN_THRESHOLD 0.8
 #define SPAWN_THRESHOLD2 0.9
 
 class Particle {
