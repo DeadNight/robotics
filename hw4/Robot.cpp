@@ -8,8 +8,8 @@
 #include "Robot.h"
 
 double Robot::obstacleMargin = 1.5;
-double Robot::maxSpeed = 0.7/2;
-double Robot::maxTurnSpeed = 0.5/2;
+double Robot::maxSpeed = 0.7;
+double Robot::maxTurnSpeed = 0.5;
 
 Robot::Robot(const char* host, unsigned port, Size size, Position position)
 				: lastPosition(NULL), gp(NULL) {
@@ -60,14 +60,6 @@ double Robot::getHeight() const {
 
 void Robot::setHeight(double height) {
 	size.setHeight(height);
-}
-
-double Robot::getWidthMeters() const {
-	return getWidth() / 100;
-}
-
-double Robot::getHeightMeters() const {
-	return getHeight() / 100;
 }
 
 Position Robot::getPosition() const {
@@ -156,7 +148,7 @@ void Robot::setPath(const Path& p) {
 }
 
 bool Robot::isAt(const Location& l) const {
-	double biggestSize = getWidth() > getHeight() ? getWidthMeters() : getHeightMeters();
+	double biggestSize = getWidth() > getHeight() ? getWidth() : getHeight();
 	return distanceTo(getStageLocation(l)) <= biggestSize/2;
 }
 
@@ -173,7 +165,7 @@ void Robot::read() {
 		lastPosition->set(pp->GetXPos(), pp->GetYPos(), rtod(pp->GetYaw()));
 
 		position.set(position.getX() + deltas.getX()/100,
-					 position.getY() - deltas.getY()/100,
+					 position.getY() + deltas.getY()/100,
 					 position.getYaw() + deltas.getYaw());
 	}
 }
@@ -258,7 +250,7 @@ void Robot::moveTo(const Path& path) {
 void Robot::moveTo(const Location& location) {
 	Location target = getStageLocation(location);
 
-	double biggestSize = getWidth() > getHeight() ? getWidthMeters() : getHeightMeters();
+	double biggestSize = getWidth() > getHeight() ? getWidth() : getHeight();
 
 	pp->SetMotorEnable(true);
 	pp->SetSpeed(0, 0);

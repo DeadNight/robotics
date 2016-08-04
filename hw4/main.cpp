@@ -148,12 +148,12 @@ int main() {
 			cout << " robot is at " << robot.getPosition().getLocation()
 				 << " facing " << robot.getPosition().getYaw() << endl;
 
-			char filename[23];
-			sprintf(filename, "images/%d_position.png", (int)(i/20));
-			localizationManager.getBestParticle().save(filename);
-
-			sprintf(filename, "images/%d_particles.png", (int)(i/20));
-			localizationManager.save(filename);
+//			char filename[23];
+//			sprintf(filename, "images/%d_position.png", (int)(i/20));
+//			localizationManager.getBestParticle().save(filename);
+//
+//			sprintf(filename, "images/%d_particles.png", (int)(i/20));
+//			localizationManager.save(filename);
 		}
 	}
 

@@ -50,9 +50,6 @@ public:
 	double getHeight() const;
 	void setHeight(double height);
 
-	double getWidthMeters() const;
-	double getHeightMeters() const;
-
 	Position getPosition() const;
     void setPosition(Position position);
     void setPosition(Position position, bool setOdometry);
