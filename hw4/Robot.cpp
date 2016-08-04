@@ -8,8 +8,8 @@
 #include "Robot.h"
 
 double Robot::obstacleMargin = 1.5;
-double Robot::maxSpeed = 0.7;
-double Robot::maxTurnSpeed = 0.5;
+double Robot::maxSpeed = 0.7/2;
+double Robot::maxTurnSpeed = 0.5/2;
 
 Robot::Robot(const char* host, unsigned port, Size size, Position position)
 				: lastPosition(NULL), gp(NULL) {

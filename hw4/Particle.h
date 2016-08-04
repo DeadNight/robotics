@@ -21,7 +21,7 @@
 
 #define NORMAL 1.1
 #define RANGE 1
-#define ROTATION 5
+#define ROTATION 20
 #define THROW_THRESHOLD 0.7
 #define SPAWN_THRESHOLD 0.8
 #define SPAWN_THRESHOLD2 0.9

@@ -7,8 +7,8 @@
  *      Author: Shay Kremer 201588126
  */
 
-#define ROBOT_IP "10.10.245.63"
-//#define ROBOT_IP "localhost"
+//#define ROBOT_IP "10.10.245.63"
+#define ROBOT_IP "localhost"
 
 #include <iostream>
 #include <fstream>
